@@ -31,7 +31,8 @@ require() {
       PathManager:required
       ;;
     *)
-      echo $"Usage: $0 { Class, PathManager, NetworkManager }"
+      echo -n "Usages: "
+      echo "require "{Class\,,PathManager\,,NetworkManager}
       exit 1
   esac
 }
