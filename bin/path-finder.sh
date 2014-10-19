@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash
+#!/bin/bash
 # Summary: Find the path for executable
 
 fullSrcDir() {

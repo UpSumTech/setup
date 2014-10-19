@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash
+#!/bin/bash
 # Utility functions that can be sourced in other bash scripts
 
 fullSrcDir() {
