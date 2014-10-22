@@ -30,9 +30,19 @@ require() {
       PathManager
       PathManager:required
       ;;
+    Boot2DockerManager)
+      source "$( fullSrcDir )/boot2docker-manager.sh"
+      Boot2DockerManager
+      Boot2DockerManager:required
+      ;;
+    DockerManager)
+      source "$( fullSrcDir )/docker-manager.sh"
+      DockerManager
+      DockerManager:required
+      ;;
     *)
       echo -n "Usages: "
-      echo "require "{Class\,,PathManager\,,NetworkManager}
+      echo "require "{Class\,,PathManager\,,Boot2DockerManager\,,DockerManager\,NetworkManager}
       exit 1
   esac
 }

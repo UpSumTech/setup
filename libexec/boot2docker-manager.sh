@@ -6,43 +6,50 @@ fullSrcDir() {
 }
 source "$( fullSrcDir )/utils.sh"
 
-validate() {
-  if [[ -z $( command -v boot2docker ) ]]; then
-    err "Please install boot2docker"
-  else
-    boot2docker restart
-  fi
-}
+Boot2DockerManager() {
+  require Class
+  _boot2DockerConstructor=$FUNCNAME
 
-extractDockerIp() {
-  [[ "$( boot2docker ip )" =~ [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3} ]] &>/dev/null \
-    && echo ${BASH_REMATCH[@]}
-}
+  Boot2DockerManager:new() {
+    local this=$1
+    local constructor=$_boot2DockerConstructor
+    Class:addInstanceMethod $constructor $this 'validate' 'Boot2DockerManager.validate'
+    Class:addInstanceMethod $constructor $this 'dockerHost' 'Boot2DockerManager.dockerHost'
+  }
 
-extractDockerPort() {
-  boot2docker info \
-    | sed -e 's#{##g;s#}##g' \
-    | while read -r -d ',' chunk; do
-        if [[ "$chunk" =~ DockerPort ]]; then
-          echo "$chunk"
-        fi
-      done \
-    | cut -d ':' -f2
-}
+  Boot2DockerManager.validate() {
+    local instance=$1
+    if [[ -z $( command -v boot2docker ) ]]; then
+      Class:exception "Please install boot2docker"
+    else
+      boot2docker restart
+    fi
+  }
 
-extractDockerHost() {
-  echo "$( extractDockerIp ):$( extractDockerPort )"
-}
+  _extractDockerIp() {
+    [[ "$( boot2docker ip )" =~ [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3} ]] &>/dev/null \
+      && echo ${BASH_REMATCH[@]}
+  }
 
-exportDockerHost() {
-  export DOCKER_HOST=tcp://"$( extractDockerHost )"
-}
+  _extractDockerPort() {
+    boot2docker info | sed -e 's#{##g;s#}##g' | while read -r -d ',' chunk; do
+      if [[ "$chunk" =~ DockerPort ]]; then
+        echo "$chunk"
+      fi
+    done | cut -d ':' -f2
+  }
 
-main() {
-  if [[ "$( uname -s )" =~ Darwin ]]; then
-    echo "OS: Mac"
-    validate && exportDockerHost
-  else
-    echo "OS: Linux"
-  fi
+  _extractDockerHost() {
+    echo "$( _extractDockerIp ):$( _extractDockerPort )"
+  }
+
+  Boot2DockerManager.dockerHost() {
+    local instance=$1
+    echo "tcp://$( _extractDockerHost )"
+  }
+
+  Boot2DockerManager:required() {
+    export -f Boot2DockerManager:new
+  }
+  export -f Boot2DockerManager:required
 }
