@@ -14,7 +14,7 @@ if [[ "$( uname -s )" =~ Darwin ]]; then
 fi
 
 require DockerManager
-DockerManager:new dm1 'rails,postgres'
+DockerManager:new dm1 'ubuntu:14.04,postgres:9.1,rails'
 $dm1_validate
 $dm1_clean
 $dm1_build

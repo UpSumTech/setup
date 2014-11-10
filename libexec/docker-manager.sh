@@ -31,7 +31,7 @@ DockerManager() {
     local instance=$1
     [[ ! -z $( command -v docker ) ]] || \
       Class:exception "Please install docker"
-    [[ "$( eval "echo \$${instance}_imageNames" )" =~ ^[a-zA-Z0-9_,]+$ ]] || \
+    [[ "$( eval "echo \$${instance}_imageNames" )" =~ ^[a-zA-Z0-9_\.:,]+$ ]] || \
       Class:exception "Please install docker"
   }
 
@@ -54,21 +54,56 @@ DockerManager() {
     fi
   }
 
+  _getDockerLogin() {
+    local dockerLoginFile="$( fullSrcDir )/../docker/.docker_login_mapping"
+    if [[ ! -f "$dockerLoginFile" ]]; then
+      Class:exception "Docker login mapping missing"
+    else
+      local line
+      local login
+      while read -r line; do
+        if [[ "$line" =~ $( whoami ):[a-zA-Z0-9_]+ ]]; then
+          login="$( echo "$line" | cut -d : -f2 )"
+        fi
+      done < "$dockerLoginFile"
+      if [[ -z "$login" ]]; then
+        Class:exception "Login not found for $( whoami )"
+      else
+        echo "$login"
+      fi
+    fi
+  }
+
   DockerManager.build() {
     local instance=$1
+    local imageNameWithTag
     local imageName
-    local dockerFile
-    local nonExistingFiles=()
-    while read -r -d ',' imageName; do
-      dockerFile="$( fullSrcDir )/../docker/$imageName"
-      echo "$dockerFile"
-      if [[ -f "$dockerFile" ]]; then
-        docker build -t "$imageName" "$dockerFile"
+    local tagName
+    local name
+    local dockerDir
+    local nonExistingDirs=()
+    local login="$( _getDockerLogin )"
+    while read -r -d ',' imageNameWithTag; do
+      if [[ "$imageNameWithTag" =~ [a-zA-Z0-9_\.]+:[a-zA-Z0-9_\.]+ ]]; then
+        imageName="$( echo ${BASH_REMATCH[@]} | cut -d : -f1 )"
+        tagName="$( echo ${BASH_REMATCH[@]} | cut -d : -f2 )"
+        dockerDir="$( fullSrcDir )/../docker/$imageName/$tagName"
       else
-        nonExistingFiles+=( "$dockerFile" )
+        imageName="$imageNameWithTag"
+        tagName=""
+        dockerDir="$( fullSrcDir )/../docker/$imageName"
+      fi
+
+      name="$login/$imageNameWithTag"
+
+      if [[ -d "$dockerDir" ]]; then
+        docker build -t="$name" "$dockerDir"
+        docker push "$name"
+      else
+        nonExistingDirs+=( "$dockerDir" )
       fi
     done <<< "$( eval "echo \$${instance}_imageNames" )"
-    Class:exception "$( echo ${nonExistingFiles[*]} ) do not exist"
+    Class:exception "$( echo ${nonExistingDirs[*]} ) do not exist"
   }
 
   DockerManager:required() {
