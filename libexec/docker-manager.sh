@@ -11,7 +11,7 @@ DockerManager() {
   _dockerManagerConstructor=$FUNCNAME
 
   DockerManager:new() {
-    local this=$1
+    local this="$1"
     local constructor=$_dockerManagerConstructor
     Class:addInstanceMethod $constructor $this 'validate' 'DockerManager.validate'
     Class:addInstanceMethod $constructor $this 'clean' 'DockerManager.clean'
@@ -28,10 +28,10 @@ DockerManager() {
   }
 
   DockerManager.validate() {
-    local instance=$1
+    local instance="$1"
     [[ ! -z $( command -v docker ) ]] || \
       Class:exception "Please install docker"
-    [[ "$( eval "echo \$${instance}_imageNames" )" =~ ^[a-zA-Z0-9_\.:,]+$ ]] || \
+    [[ "$( eval "echo \$${instance}_imageNames" )" =~ ^[a-zA-Z0-9_\.:,-]+$ ]] || \
       Class:exception "Please install docker"
   }
 
@@ -48,7 +48,7 @@ DockerManager() {
   }
 
   DockerManager.clean() {
-    local instance=$1
+    local instance="$1"
     if [[ ! -z $( _getAllContainers ) ]]; then
       _stop && _remove
     fi
@@ -75,7 +75,7 @@ DockerManager() {
   }
 
   DockerManager.build() {
-    local instance=$1
+    local instance="$1"
     local imageNameWithTag
     local imageName
     local tagName
@@ -84,7 +84,7 @@ DockerManager() {
     local nonExistingDirs=()
     local login="$( _getDockerLogin )"
     while read -r -d ',' imageNameWithTag; do
-      if [[ "$imageNameWithTag" =~ [a-zA-Z0-9_\.]+:[a-zA-Z0-9_\.]+ ]]; then
+      if [[ "$imageNameWithTag" =~ [a-zA-Z0-9_\.-]+:[a-zA-Z0-9_\.-]+ ]]; then
         imageName="$( echo ${BASH_REMATCH[@]} | cut -d : -f1 )"
         tagName="$( echo ${BASH_REMATCH[@]} | cut -d : -f2 )"
         dockerDir="$( fullSrcDir )/../docker/$imageName/$tagName"
@@ -103,7 +103,9 @@ DockerManager() {
         nonExistingDirs+=( "$dockerDir" )
       fi
     done <<< "$( eval "echo \$${instance}_imageNames" )"
-    Class:exception "$( echo ${nonExistingDirs[*]} ) do not exist"
+
+    [[ ${#nonExistingDirs[@]} -gt 0 ]] && \
+      Class:exception "$( echo ${nonExistingDirs[*]} ) do not exist"
   }
 
   DockerManager:required() {

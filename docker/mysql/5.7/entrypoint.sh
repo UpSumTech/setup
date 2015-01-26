@@ -30,7 +30,6 @@ cleanup() {
 }
 
 main() {
-  echo "******** Initiating service **********"
   local tmpFile='/tmp/initdb.sql'
   touch "$tmpFile"
   validate
@@ -38,7 +37,6 @@ main() {
   prepareDbScript "$tmpFile"
   gosu mysql mysqld --datadir="$MYSQLDATA" --init-file="$tmpFile" &
   cleanup "$tmpFile"
-  echo "******** Done ********"
 }
 
 main

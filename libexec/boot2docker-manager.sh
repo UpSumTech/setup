@@ -11,14 +11,14 @@ Boot2DockerManager() {
   _boot2DockerConstructor=$FUNCNAME
 
   Boot2DockerManager:new() {
-    local this=$1
+    local this="$1"
     local constructor=$_boot2DockerConstructor
     Class:addInstanceMethod $constructor $this 'validate' 'Boot2DockerManager.validate'
     Class:addInstanceMethod $constructor $this 'dockerHost' 'Boot2DockerManager.dockerHost'
   }
 
   Boot2DockerManager.validate() {
-    local instance=$1
+    local instance="$1"
     if [[ -z $( command -v boot2docker ) ]]; then
       Class:exception "Please install boot2docker"
     else
