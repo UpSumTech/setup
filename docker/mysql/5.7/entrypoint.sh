@@ -39,4 +39,8 @@ main() {
   cleanup "$tmpFile"
 }
 
-main
+if [[ "$1" = 'mysqld' ]]; then
+  main
+else
+  exec "$@"
+fi

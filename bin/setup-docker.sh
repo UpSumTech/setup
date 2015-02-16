@@ -27,7 +27,7 @@ runDockerManager() {
       local allImages=('ubuntu:14.04' \
         'mysql:5.7' \
         'postgres:9.1' \
-        'nvm:0.23.2' \
+        'nvm:v0.23.2' \
         'node:v0.10.29' \
         'rbenv:0.4.0' \
         'ruby:1.9.3-p484' \

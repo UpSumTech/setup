@@ -27,9 +27,19 @@ RUN apt-get -qq update \
 RUN ldconfig /usr/local/lib
 
 USER webapp
-RUN source /.bash_profile && gem install passenger
-RUN mkdir $HOME/apps
+WORKDIR $HOME
 
+VOLUME ["$HOME/apps"]
+RUN cd $HOME/apps
+
+RUN source /.bash_profile && gem install passenger
+ONBUILD RUN source /.bash_profile \
+  && bundle install
+
+ONBUILD CMD bundle exec rake db:create db:migrate \
+  && passenger start --port 3000
+
+WORKDIR /
 USER root
 
 EXPOSE 3000

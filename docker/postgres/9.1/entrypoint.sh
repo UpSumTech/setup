@@ -21,4 +21,8 @@ main() {
   gosu postgres postgres --config-file="$configFile" -D "$PGDATA"
 }
 
-main
+if [[ "$1" = 'postgres' ]]; then
+  main
+else
+  exec "$@"
+fi

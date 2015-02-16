@@ -35,4 +35,5 @@ RUN echo 'export RBENV_ROOT="$HOME/.rbenv"' >> $HOME/.bashrc
 RUN echo 'export PATH="$RBENV_ROOT/shims:$RBENV_ROOT/bin:$PATH"' >> $HOME/.bashrc
 RUN echo 'eval "$(rbenv init -)"' >> $HOME/.bashrc
 
+WORKDIR /
 USER root

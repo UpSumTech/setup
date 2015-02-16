@@ -36,3 +36,5 @@ COPY ./initdb.d /initdb.d
 ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 3306
+
+CMD ["mysqld"]
