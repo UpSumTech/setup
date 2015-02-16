@@ -15,6 +15,8 @@ Boot2DockerManager() {
     local constructor=$_boot2DockerConstructor
     Class:addInstanceMethod $constructor $this 'validate' 'Boot2DockerManager.validate'
     Class:addInstanceMethod $constructor $this 'dockerHost' 'Boot2DockerManager.dockerHost'
+    Class:addInstanceMethod $constructor $this 'dockerCert' 'Boot2DockerManager.dockerCert'
+    Class:addInstanceMethod $constructor $this 'dockerTls' 'Boot2DockerManager.dockerTls'
   }
 
   Boot2DockerManager.validate() {
@@ -22,7 +24,8 @@ Boot2DockerManager() {
     if [[ -z $( command -v boot2docker ) ]]; then
       Class:exception "Please install boot2docker"
     else
-      boot2docker restart
+      boot2docker stop
+      boot2docker up
     fi
   }
 
@@ -40,12 +43,23 @@ Boot2DockerManager() {
   }
 
   _extractDockerHost() {
-    echo "$( _extractDockerIp ):$( _extractDockerPort )"
+    # echo "$( _extractDockerIp ):$( _extractDockerPort )"
+    echo "192.168.59.103:2376"
   }
 
   Boot2DockerManager.dockerHost() {
     local instance=$1
     echo "tcp://$( _extractDockerHost )"
+  }
+
+  Boot2DockerManager.dockerCert() {
+    local instance=$1
+    echo "$HOME/.boot2docker/certs/boot2docker-vm"
+  }
+
+  Boot2DockerManager.dockerTls() {
+    local instance=$1
+    echo "1"
   }
 
   Boot2DockerManager:required() {

@@ -30,5 +30,5 @@ RUN rm -rf /var/lib/apt/lists/*
 RUN apt-get -qq update
 
 RUN chsh -s /bin/bash
-RUN echo 'if [[ -f ~/.bashrc ]]; then source ~/.bashrc; fi' >> /.bash_profile
+RUN echo 'if [[ -f $HOME/.bashrc ]]; then source $HOME/.bashrc; fi' >> /.bash_profile
 RUN rm /bin/sh && ln -sf /bin/bash /bin/sh
