@@ -3,15 +3,15 @@ MAINTAINER Suman Mukherjee <sumanmukherjee03@gmail.com>
 
 RUN groupadd -r mysql && useradd -r -g mysql mysql
 
+ENV MYSQL_VERSION 5.7
+
 RUN apt-get -qq update \
-  && curl -o mysql-5.7.deb -SL 'http://dev.mysql.com/get/mysql-apt-config_0.3.2-1ubuntu14.04_all.deb' \
-  && dpkg -i mysql-5.7.deb
+  && curl -o "mysql-${MYSQL_VERSION}.deb" -SL 'http://dev.mysql.com/get/mysql-apt-config_0.3.2-1ubuntu14.04_all.deb' \
+  && dpkg -i "mysql-${MYSQL_VERSION}.deb"
 
 RUN apt-get -qq update \
   && apt-get install -y \
-    mysql-server \
-    libmysqlclient18 \
-    mysql-client
+    mysql-server
 
 RUN rm -rf /var/run/mysqld \
   && mkdir -p /var/run/mysqld \

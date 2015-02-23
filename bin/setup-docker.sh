@@ -47,7 +47,6 @@ runDockerManager() {
   local images=$( normalizeArgs , "$imageNames" )
   if [[ ! -z "$images" ]]; then
     require DockerManager
-    echo "$images"
     DockerManager:new dm1 "$images"
     $dm1_validate
     $dm1_clean

@@ -18,11 +18,16 @@ main() {
   $cmd <<< "CREATE USER root WITH SUPERUSER;" > /dev/null
   $cmd <<< "ALTER USER root WITH PASSWORD '$PASSWD';" > /dev/null
   $cmd <<< "CREATE DATABASE root;" > /dev/null
-  gosu postgres postgres --config-file="$configFile" -D "$PGDATA"
+  set -- "$@" --config-file="$configFile" -D "$PGDATA"
+  exec gosu postgres "$@"
 }
 
+if [ "${1:0:1}" = '-' ];
+  set -- postgres "$@"
+fi
+
 if [[ "$1" = 'postgres' ]]; then
-  main
+  main "$@"
 else
   exec "$@"
 fi

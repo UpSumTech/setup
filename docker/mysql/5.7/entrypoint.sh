@@ -35,12 +35,17 @@ main() {
   validate
   gosu mysql mysql_install_db --datadir="$MYSQLDATA"
   prepareDbScript "$tmpFile"
-  gosu mysql mysqld --datadir="$MYSQLDATA" --init-file="$tmpFile" &
-  cleanup "$tmpFile"
+  set -- "$@" --datadir="$MYSQLDATA" --init-file="$tmpFile"
+  exec gosu mysql "$@"
+  # cleanup "$tmpFile"
 }
 
+if [ "${1:0:1}" = '-' ]; then
+  set -- mysqld "$@"
+fi
+
 if [[ "$1" = 'mysqld' ]]; then
-  main
+  main "$@"
 else
   exec "$@"
 fi

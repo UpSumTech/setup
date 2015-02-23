@@ -40,9 +40,14 @@ require() {
       DockerManager
       DockerManager:required
       ;;
+    DockerContainerManager)
+      source "$( fullSrcDir )/docker-container-manager.sh"
+      DockerContainerManager
+      DockerContainerManager:required
+      ;;
     *)
       echo -n "Usages: "
-      echo "require "{Class\,,PathManager\,,Boot2DockerManager\,,DockerManager\,NetworkManager}
+      echo "require "{Class\,,PathManager\,,Boot2DockerManager\,,DockerManager\,,DockerContainerManager\,,NetworkManager}
       exit 1
   esac
 }

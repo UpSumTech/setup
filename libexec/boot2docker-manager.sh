@@ -14,6 +14,8 @@ Boot2DockerManager() {
     local this="$1"
     local constructor=$_boot2DockerConstructor
     Class:addInstanceMethod $constructor $this 'validate' 'Boot2DockerManager.validate'
+    Class:addInstanceMethod $constructor $this 'dockerHostIP' 'Boot2DockerManager.dockerHostIP'
+    Class:addInstanceMethod $constructor $this 'dockerHostPort' 'Boot2DockerManager.dockerHostPort'
     Class:addInstanceMethod $constructor $this 'dockerHost' 'Boot2DockerManager.dockerHost'
     Class:addInstanceMethod $constructor $this 'dockerCert' 'Boot2DockerManager.dockerCert'
     Class:addInstanceMethod $constructor $this 'dockerTls' 'Boot2DockerManager.dockerTls'
@@ -29,12 +31,14 @@ Boot2DockerManager() {
     fi
   }
 
-  _extractDockerIp() {
+  Boot2DockerManager.dockerHostIP() {
+    # local instance="$1"
     [[ "$( boot2docker ip )" =~ [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3} ]] &>/dev/null \
       && echo ${BASH_REMATCH[@]}
   }
 
-  _extractDockerPort() {
+  Boot2DockerManager.dockerHostPort() {
+    # local instance="$1"
     boot2docker info | sed -e 's#{##g;s#}##g' | while read -r -d ',' chunk; do
       if [[ "$chunk" =~ DockerPort ]]; then
         echo "$chunk"
@@ -42,14 +46,10 @@ Boot2DockerManager() {
     done | cut -d ':' -f2
   }
 
-  _extractDockerHost() {
-    # echo "$( _extractDockerIp ):$( _extractDockerPort )"
-    echo "192.168.59.103:2376"
-  }
-
   Boot2DockerManager.dockerHost() {
     local instance=$1
-    echo "tcp://$( _extractDockerHost )"
+    # echo "192.168.59.103:2376"
+    echo "tcp://$( eval "echo \$${instance}_dockerHostIP" ):$( eval "echo \$${instance}_dockerHostPort")"
   }
 
   Boot2DockerManager.dockerCert() {
