@@ -1,6 +1,8 @@
 #!/bin/bash
 # boot2docker manager
 
+set -e
+
 fullSrcDir() {
   echo "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 }
@@ -26,8 +28,10 @@ Boot2DockerManager() {
     if [[ -z $( command -v boot2docker ) ]]; then
       Class:exception "Please install boot2docker"
     else
-      boot2docker stop
-      boot2docker up
+      local boot2dockerStatus="$( boot2docker status )"
+      if [[ "$boot2dockerStatus" =~ poweroff ]]; then
+        boot2docker up
+      fi
     fi
   }
 

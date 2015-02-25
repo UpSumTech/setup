@@ -8,9 +8,10 @@ source "$( fullSrcDir )/../libexec/utils.sh"
 
 main() {
   require DockerContainerManager
-  DockerContainerManager:new dcm1 "$@"
+  DockerContainerManager:new dcm1 "${@:1:1}"
+  set -- "${@:2}"
   $dcm1_validate
-  $dcm1_run
+  $dcm1_run "$@"
 }
 
 [[ "$BASH_SOURCE" == "$0" ]] && main "$@"

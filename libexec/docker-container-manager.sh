@@ -77,7 +77,27 @@ DockerContainerManager() {
   }
 
   _runMysql() {
-    echo "sumanmukherjee03/mysql:$1"
+    local version="$1"
+    local envVars="${@:2}"
+
+    local instructions=( \
+      "docker" \
+      "run" \
+      "--name" \
+      "mysqlserver" \
+      "-d" \
+      "-p" \
+      "3306:3306" \
+    )
+
+    local envVar
+    for envVar in ${envVars[@]}; do
+      instructions+=( '-e' "$envVar" )
+    done
+
+    instructions+=( "sumanmukherjee03/mysql:$version" )
+
+    exec "${instructions[@]}"
   }
 
   _runPostgres() {
@@ -110,6 +130,7 @@ DockerContainerManager() {
 
   DockerContainerManager.run() {
     local instance="$1"
+    set -- "${@:2}"
 
     declare -A ROUTING_TABLE
     ROUTING_TABLE=( \
@@ -126,7 +147,7 @@ DockerContainerManager() {
     local imageName="$( eval "echo \$${instance}_imageName" )"
     local version="$( eval "echo \$${instance}_version" )"
     local fnName="$( echo "${ROUTING_TABLE["$imageName"]}" )"
-    $( eval "echo $fnName $version" )
+    eval "$fnName $version" "$@"
   }
 
   DockerContainerManager:required() {
