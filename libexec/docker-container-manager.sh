@@ -55,10 +55,6 @@ DockerContainerManager() {
     REGISTERED_IMAGES=( \
       ['mysql']='5.7' \
       ['postgres']='9.1' \
-      ['nvm']='v0.23.2' \
-      ['node']='v0.10.29' \
-      ['rbenv']='0.4.0' \
-      ['ruby']='1.9.3-p484' \
       ['rails']='3.2.18,onbuild' \
       ['nginx']='1.4.6,passenger-nginx' \
     )
@@ -67,7 +63,7 @@ DockerContainerManager() {
       Class:exception "Docker host IP could not be found"
 
     local imageName="$( eval "echo \$${instance}_imageName" )"
-    local registeredVersions="$( echo "${REGISTERED_IMAGES['mysql']}" )"
+    local registeredVersions="$( echo "${REGISTERED_IMAGES["$imageName"]}" )"
     [[ ! -z "$imageName" && ! -z "$registeredVersions" ]] || \
       Class:exception "This image does not exist"
 
@@ -76,18 +72,33 @@ DockerContainerManager() {
       Class:exception "This version for the image does not exist"
   }
 
-  _runMysql() {
-    local version="$1"
-    local envVars="${@:2}"
+  _runService() {
+    local rdbmsName="$1"
+    local version="$2"
+    local envVars="${@:3}"
+
+    declare -A mysqlSettings=( ['containerName']='mysqlServer' ['port']='3306' ['imageName']='mysql' )
+    declare -A postgresSettings=( ['containerName']='postgresServer' ['port']='5432' ['imageName']='postgres' )
+    declare -n settings
+
+    if [[ "$rdbmsName" =~ mysql ]]; then
+      settings="mysqlSettings"
+    else
+      settings="postgresSettings"
+    fi
+
+    local containerName="$( echo ${settings["containerName"]} )"
+    local port="$( echo ${settings["port"]} )"
+    local imageName="$( echo ${settings["imageName"]} )"
 
     local instructions=( \
       "docker" \
       "run" \
       "--name" \
-      "mysqlserver" \
+      "$containerName" \
       "-d" \
       "-p" \
-      "3306:3306" \
+      "$port:$port" \
     )
 
     local envVar
@@ -95,29 +106,19 @@ DockerContainerManager() {
       instructions+=( '-e' "$envVar" )
     done
 
-    instructions+=( "sumanmukherjee03/mysql:$version" )
+    instructions+=( "sumanmukherjee03/$imageName:$version" )
 
     exec "${instructions[@]}"
   }
 
+  _runMysql() {
+    set -- "mysql" "$@"
+    _runService "$@"
+  }
+
   _runPostgres() {
-    echo "sumanmukherjee03/postgres:$1"
-  }
-
-  _runNvm() {
-    echo "sumanmukherjee03/nvm:$1"
-  }
-
-  _runNode() {
-    echo "sumanmukherjee03/node:$1"
-  }
-
-  _runRbenv() {
-    echo "sumanmukherjee03/rbenv:$1"
-  }
-
-  _runRuby() {
-    echo "sumanmukherjee03/ruby:$1"
+    set -- "postgres" "$@"
+    _runService "$@"
   }
 
   _runRails() {
@@ -136,10 +137,6 @@ DockerContainerManager() {
     ROUTING_TABLE=( \
       ['mysql']='_runMysql' \
       ['postgres']='_runPostgres' \
-      ['nvm']='_runNvm' \
-      ['node']='_runNode' \
-      ['rbenv']='_runRbenv' \
-      ['ruby']='_runRuby' \
       ['rails']='_runRails' \
       ['nginx']='_runNginx' \
     )
