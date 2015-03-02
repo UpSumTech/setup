@@ -65,31 +65,60 @@ DockerContainerManager() {
     local imageName="$( eval "echo \$${instance}_imageName" )"
     local registeredVersions="$( echo "${REGISTERED_IMAGES["$imageName"]}" )"
     [[ ! -z "$imageName" && ! -z "$registeredVersions" ]] || \
-      Class:exception "This image does not exist"
+      Class:exception "This image $imageName does not exist"
 
     local version="$( eval "echo \$${instance}_version" )"
-    [[ ! -z "$version" && "$version" =~ $registeredVersions ]] || \
-      Class:exception "This version for the image does not exist"
+    [[ ! -z "$version" && "$version"=~$registeredVersions ]] || \
+      Class:exception "The version $version for image $imageName does not exist in registered versions $registeredVersions"
   }
 
   _runService() {
-    local rdbmsName="$1"
-    local version="$2"
-    local envVars="${@:3}"
+    local serviceName="$1"
+    local envVars="${@:2}"
 
-    declare -A mysqlSettings=( ['containerName']='mysqlServer' ['port']='3306' ['imageName']='mysql' )
-    declare -A postgresSettings=( ['containerName']='postgresServer' ['port']='5432' ['imageName']='postgres' )
+    declare -A mysqlSettings=( \
+      ['containerName']='mysqlServer' \
+      ['port']='3306' \
+    )
+
+    declare -A postgresSettings=( \
+      ['containerName']='postgresServer' \
+      ['port']='5432' \
+    )
+
+    declare -A railsSettings=( \
+      ['containerName']='railsServer' \
+      ['port']='3000' \
+    )
+
+    declare -A nginxSettings=( \
+      ['containerName']='nginxServer' \
+      ['port']='80' \
+    )
+
     declare -n settings
 
-    if [[ "$rdbmsName" =~ mysql ]]; then
-      settings="mysqlSettings"
-    else
-      settings="postgresSettings"
-    fi
+    case "$serviceName" in
+      mysql)
+        settings="mysqlSettings"
+        ;;
+      postgres)
+        settings="postgresSettings"
+        ;;
+      rails)
+        settings="railsSettings"
+        ;;
+      nginx)
+        settings="nginxSettings"
+        ;;
+      *)
+        echo -n "Valid options: "
+        echo "mysql, postgres, rails, nginx"
+        exit 1
+    esac
 
     local containerName="$( echo ${settings["containerName"]} )"
     local port="$( echo ${settings["port"]} )"
-    local imageName="$( echo ${settings["imageName"]} )"
 
     local instructions=( \
       "docker" \
@@ -106,34 +135,54 @@ DockerContainerManager() {
       instructions+=( '-e' "$envVar" )
     done
 
-    instructions+=( "sumanmukherjee03/$imageName:$version" )
-
-    exec "${instructions[@]}"
+    echo "${instructions[@]}"
   }
 
   _runMysql() {
     set -- "mysql" "$@"
-    _runService "$@"
+    local instructions="$( _runService "$@" )"
+    echo ${instructions[@]}
   }
 
   _runPostgres() {
     set -- "postgres" "$@"
-    _runService "$@"
+    local instructions=( "$( _runService "$@" )" )
+    echo ${instructions[@]}
   }
 
   _runRails() {
-    echo "sumanmukherjee03/rails:$1"
+    set -- "rails" "$@"
+    local instructions="$( _runService "$@" )"
+    instructions+=( \
+      "-v" \
+      "/Users/suman/Work/lp-webapp:/usr/src/app" \
+    )
+    echo ${instructions[@]}
   }
 
   _runNginx() {
-    echo "sumanmukherjee03/nginx:$1"
+    set -- "nginx" "$@"
+    local instructions="$( _runService "$@" )"
+    echo ${instructions[@]}
   }
 
   DockerContainerManager.run() {
     local instance="$1"
     set -- "${@:2}"
 
+    local indexOfEnvVars=$( echo "$( searchArray "-e" "$@" )" | bc )
+    local envVars=""
+    local otherOptions=""
+
+    if [[ $indexOfEnvVars -gt 0 ]]; then
+      envVars="${@:(($indexOfEnvVars+1))}"
+      if [[ $indexOfEnvVars -gt 1 ]]; then
+        otherOptions="${@:1:(($indexOfEnvVars-1))}"
+      fi
+    fi
+
     declare -A ROUTING_TABLE
+
     ROUTING_TABLE=( \
       ['mysql']='_runMysql' \
       ['postgres']='_runPostgres' \
@@ -144,7 +193,11 @@ DockerContainerManager() {
     local imageName="$( eval "echo \$${instance}_imageName" )"
     local version="$( eval "echo \$${instance}_version" )"
     local fnName="$( echo "${ROUTING_TABLE["$imageName"]}" )"
-    eval "$fnName $version" "$@"
+    local instructions=( "$( eval "$fnName" "$envVars" )" )
+
+    instructions+=( "$otherOptions" "sumanmukherjee03/$imageName:$version" )
+
+    exec ${instructions[@]}
   }
 
   DockerContainerManager:required() {

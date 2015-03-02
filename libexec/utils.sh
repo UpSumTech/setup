@@ -18,6 +18,23 @@ splitWord() {
   IFS="$old_IFS"
 }
 
+searchArray() {
+  local testStr="$1"
+  local array=( "${@:2}" )
+  local i=1;
+
+  for str in "${array[@]}"; do
+    if [ "$str" = "$testStr" ]; then
+      echo $i
+      return
+    else
+      ((i++))
+    fi
+  done
+
+  echo "-1"
+}
+
 require() {
   case "$1" in
     Class)
