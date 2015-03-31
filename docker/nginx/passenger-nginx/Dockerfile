@@ -17,12 +17,20 @@ RUN apt-get -qq update \
 RUN rm -rf /etc/nginx \
   && mkdir -p /etc/nginx/vhosts
 
-COPY configuration /etc/nginx/
-
 RUN rm -rf /usr/src/app \
   && mkdir -p /usr/src/app \
   && chown -R www-data:www-data /usr/src/app
 
+COPY ./entrypoint.sh /entrypoint.sh
+
+COPY configuration/nginx.conf /etc/nginx/
+
+RUN rm -rf /usr/src/vhost_templates \
+  && mkdir -p /usr/src/vhost_templates
+
+COPY configuration/vhost_templates /usr/src/vhost_templates
+
 EXPOSE 80
 
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["nginx"]

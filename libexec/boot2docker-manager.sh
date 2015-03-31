@@ -43,17 +43,17 @@ Boot2DockerManager() {
 
   Boot2DockerManager.dockerHostPort() {
     # local instance="$1"
-    boot2docker info | sed -e 's#{##g;s#}##g' | while read -r -d ',' chunk; do
+    local port="$( boot2docker info | sed -e 's#{##g;s#}##g' | while read -r -d ',' chunk; do
       if [[ "$chunk" =~ DockerPort ]]; then
         echo "$chunk"
       fi
-    done | cut -d ':' -f2
+    done | cut -d ':' -f2 )"
+    echo $(( $port + 1 ))
   }
 
   Boot2DockerManager.dockerHost() {
-    local instance=$1
-    # echo "192.168.59.103:2376"
-    echo "tcp://$( eval "echo \$${instance}_dockerHostIP" ):$( eval "echo \$${instance}_dockerHostPort")"
+    # local instance=$1
+    echo "$( Boot2DockerManager.dockerHostIP ):$( Boot2DockerManager.dockerHostPort )"
   }
 
   Boot2DockerManager.dockerCert() {

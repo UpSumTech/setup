@@ -1,7 +1,7 @@
 http {
   upstream rails_cluster {
     ip_hash;
-    server 192.168.59.103:3000;
+    server %RAILS_SERVER_IP%:%RAILS_SERVER_PORT%;
   }
 
   server {

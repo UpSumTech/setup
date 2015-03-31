@@ -54,7 +54,7 @@ DockerManager() {
     fi
   }
 
-  _getDockerLogin() {
+  _getDockerHubLogin() {
     local dockerLoginFile="$( fullSrcDir )/../docker/.docker_login_mapping"
     if [[ ! -f "$dockerLoginFile" ]]; then
       Class:exception "Docker login mapping missing"
@@ -82,7 +82,7 @@ DockerManager() {
     local name
     local dockerDir
     local nonExistingDirs=()
-    local login="$( _getDockerLogin )"
+    local login="$( _getDockerHubLogin )"
     while read -r -d ',' imageNameWithTag; do
       if [[ "$imageNameWithTag" =~ [a-zA-Z0-9_\.-]+:[a-zA-Z0-9_\.-]+ ]]; then
         imageName="$( echo ${BASH_REMATCH[@]} | cut -d : -f1 )"

@@ -10,6 +10,7 @@ source "$( fullSrcDir )/utils.sh"
 
 DockerContainerManager() {
   require Class
+  require NetworkManager
   require Boot2DockerManager
 
   _dockerContainerConstructor=$FUNCNAME
@@ -30,40 +31,14 @@ DockerContainerManager() {
     Class:addInstanceProperty $constructor $this 'imageName' "$( echo ${splitArgArray[0]} )"
     Class:addInstanceProperty $constructor $this 'version' "$( echo ${splitArgArray[1]} )"
 
-    Class:addInstanceProperty $constructor $this 'dockerHostIP' "$( _getDockerHostIP "$2" )"
-
-    Class:addInstanceMethod $constructor $this 'run' 'DockerContainerManager.run'
-  }
-
-  _getDockerHostIP() {
-    if [[ "$( uname -s )" =~ Darwin ]]; then
-      Boot2DockerManager:new b2d1 "$1"
-      $b2d1_validate
-      export DOCKER_HOST="$( $b2d1_dockerHost )"
-      export DOCKER_CERT_PATH="$( $b2d1_dockerCert )"
-      export DOCKER_TLS_VERIFY="$( $b2d1_dockerTls )"
-      echo "$b2d1_dockerHostIP"
-    else
-      echo "127.0.0.1" # temp value
-    fi
+    Class:addInstanceMethod $constructor $this 'start' 'DockerContainerManager.start'
+    Class:addInstanceMethod $constructor $this 'stop' 'DockerContainerManager.stop'
   }
 
   DockerContainerManager.validate() {
     local instance="$1"
-
-    declare -A REGISTERED_IMAGES
-    REGISTERED_IMAGES=( \
-      ['mysql']='5.7' \
-      ['postgres']='9.1' \
-      ['rails']='3.2.18,onbuild' \
-      ['nginx']='1.4.6,passenger-nginx' \
-    )
-
-    [[ ! -z "$( eval "echo \$${instance}_dockerHostIP" )" ]] || \
-      Class:exception "Docker host IP could not be found"
-
     local imageName="$( eval "echo \$${instance}_imageName" )"
-    local registeredVersions="$( echo "${REGISTERED_IMAGES["$imageName"]}" )"
+    local registeredVersions="$( echo "${dockerImagesRegistry["$imageName"]}" )"
     [[ ! -z "$imageName" && ! -z "$registeredVersions" ]] || \
       Class:exception "This image $imageName does not exist"
 
@@ -72,29 +47,9 @@ DockerContainerManager() {
       Class:exception "The version $version for image $imageName does not exist in registered versions $registeredVersions"
   }
 
-  _runService() {
+  _getInstructionsForService() {
     local serviceName="$1"
     local envVars="${@:2}"
-
-    declare -A mysqlSettings=( \
-      ['containerName']='mysqlServer' \
-      ['port']='3306' \
-    )
-
-    declare -A postgresSettings=( \
-      ['containerName']='postgresServer' \
-      ['port']='5432' \
-    )
-
-    declare -A railsSettings=( \
-      ['containerName']='railsServer' \
-      ['port']='3000' \
-    )
-
-    declare -A nginxSettings=( \
-      ['containerName']='nginxServer' \
-      ['port']='80' \
-    )
 
     declare -n settings
 
@@ -111,9 +66,12 @@ DockerContainerManager() {
       nginx)
         settings="nginxSettings"
         ;;
+      consul)
+        settings="consulSettings"
+        ;;
       *)
         echo -n "Valid options: "
-        echo "mysql, postgres, rails, nginx"
+        echo "mysql, postgres, rails, nginx, consul"
         exit 1
     esac
 
@@ -140,19 +98,19 @@ DockerContainerManager() {
 
   _runMysql() {
     set -- "mysql" "$@"
-    local instructions="$( _runService "$@" )"
+    local instructions="$( _getInstructionsForService "$@" )"
     echo ${instructions[@]}
   }
 
   _runPostgres() {
     set -- "postgres" "$@"
-    local instructions=( "$( _runService "$@" )" )
+    local instructions=( "$( _getInstructionsForService "$@" )" )
     echo ${instructions[@]}
   }
 
   _runRails() {
     set -- "rails" "$@"
-    local instructions="$( _runService "$@" )"
+    local instructions="$( _getInstructionsForService "$@" )"
     instructions+=( \
       "-v" \
       "/Users/suman/Work/lp-webapp:/usr/src/app" \
@@ -162,11 +120,57 @@ DockerContainerManager() {
 
   _runNginx() {
     set -- "nginx" "$@"
-    local instructions="$( _runService "$@" )"
+    local instructions="$( _getInstructionsForService "$@" )"
     echo ${instructions[@]}
   }
 
-  DockerContainerManager.run() {
+  _runConsul() {
+    set -- "consul" "$@"
+    local instructions="$( _getInstructionsForService "$@" )"
+    if [[ "$( uname -s )" =~ Linux ]]; then
+      NetworkManager:new nm1
+      local externalIP="$( eval $nm1_getIP )"
+      local bridgeIP="$( eval $nm1_getDockerBridgeIP )"
+
+      instructions+=( \
+        "-v" \
+        "/mnt:/var/lib/consul" \
+      )
+
+      instructions+=( \
+        "-p" \
+        "$externalIP:8300:8300" \
+        "-p" \
+        "$externalIP:8301:8301" \
+        "-p" \
+        "$externalIP:8301:8301/udp" \
+        "-p" \
+        "$externalIP:8302:8302" \
+        "-p" \
+        "$externalIP:8302:8302/udp" \
+        "-p" \
+        "$externalIP:8400:8400" \
+        "-p" \
+        "$externalIP:8500:8500" \
+        "-p" \
+        "$bridgeIP:53:53/udp" \
+      )
+    else
+      instructions+=( \
+        "-p" \
+        "8300:8300" \
+        "-p" \
+        "8400:8400" \
+        "-p" \
+        "8500:8500" \
+        "-p" \
+        "53:53/udp" \
+      )
+    fi
+    echo ${instructions[@]}
+  }
+
+  DockerContainerManager.start() {
     local instance="$1"
     set -- "${@:2}"
 
@@ -181,13 +185,12 @@ DockerContainerManager() {
       fi
     fi
 
-    declare -A ROUTING_TABLE
-
-    ROUTING_TABLE=( \
+    declare -A ROUTING_TABLE=( \
       ['mysql']='_runMysql' \
       ['postgres']='_runPostgres' \
       ['rails']='_runRails' \
       ['nginx']='_runNginx' \
+      ['consul']='_runConsul' \
     )
 
     local imageName="$( eval "echo \$${instance}_imageName" )"
@@ -198,6 +201,40 @@ DockerContainerManager() {
     instructions+=( "$otherOptions" "sumanmukherjee03/$imageName:$version" )
 
     exec ${instructions[@]}
+  }
+
+  DockerContainerManager.stop() {
+    local instance="$1"
+    local imageName="$( eval "echo \$${instance}_imageName" )"
+    declare -n settings
+
+    case "$imageName" in
+      mysql)
+        settings="mysqlSettings"
+        ;;
+      postgres)
+        settings="postgresSettings"
+        ;;
+      rails)
+        settings="railsSettings"
+        ;;
+      nginx)
+        settings="nginxSettings"
+        ;;
+      consul)
+        settings="consulSettings"
+        ;;
+      *)
+        echo -n "Valid options: "
+        echo "mysql, postgres, rails, nginx, consul"
+        exit 1
+    esac
+
+    local containerName="$( echo ${settings["containerName"]} )"
+    if [[ ! -z "$( docker ps -a | grep "$containerName" )" ]]; then
+      docker stop "$containerName"
+      docker rm "$containerName"
+    fi
   }
 
   DockerContainerManager:required() {

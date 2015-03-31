@@ -11,9 +11,32 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # Every Vagrant virtual environment requires a box to build off of.
   # config.vm.box = "base"
-  config.vm.box = "hashicorp/precise64"
-  config.vm.provision :shell, path: "bin/bootstrap.sh"
-  config.vm.network :forwarded_port, host: 4567, guest: 80
+  config.vm.box = "ubuntu/trusty64"
+
+  start_ip = [172,20,20,10]
+  no_of_nodes = 3
+  no_of_nodes.times do |i|
+    config.vm.define "node#{i + 1}" do |n|
+      node_name = "node#{i + 1}"
+      external_ip = start_ip.tap {|arr| arr[3] += i}.join('.')
+
+      n.vm.hostname = node_name
+      n.vm.network "private_network", ip: external_ip
+      n.vm.provision "docker" do |d|
+        d.pull_images "sumanmukherjee03/consul:0.5.0"
+      end
+      n.vm.synced_folder ".", "/vagrant"
+
+      env_vars = [
+        "NODE_NAME=#{node_name}",
+        "EXTERNAL_IP=#{external_ip}",
+        (i == 0 ? "BOOTSTRAP=#{no_of_nodes}" : "JOIN_IP=#{start_ip.join('.')}")
+      ].join(" ")
+
+      n.vm.provision "shell",
+        inline: "cd /vagrant && ./bin/run-docker-container.sh consul:0.5.0 -h #{node_name} -e #{env_vars}"
+    end
+  end
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs

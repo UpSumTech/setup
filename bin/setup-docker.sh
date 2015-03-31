@@ -35,6 +35,7 @@ runDockerManager() {
         'rails:onbuild' \
         'nginx:1.4.6' \
         'nginx:passenger-nginx' \
+        'consul:0.5.0' \
       )
       IFS=,
       echo "${allImages[*]}"
