@@ -22,6 +22,11 @@ declare -r -x -A nginxSettings=( \
   ['port']='80' \
 )
 
+declare -r -x -A dnsmasqSettings=( \
+  ['containerName']='dnsmasqServer' \
+  ['port']='53' \
+)
+
 declare -r -x -A consulSettings=( \
   ['containerName']='consulAgent' \
   ['port']='8600' \

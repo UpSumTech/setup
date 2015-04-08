@@ -67,6 +67,11 @@ require() {
       DockerContainerManager
       DockerContainerManager:required
       ;;
+    DnsmasqManager)
+      source "$( fullSrcDir )/dnsmasq-manager.sh"
+      DnsmasqManager
+      DnsmasqManager:required
+      ;;
     ConsulManager)
       source "$( fullSrcDir )/consul-manager.sh"
       ConsulManager
@@ -74,7 +79,7 @@ require() {
       ;;
     *)
       echo -n "Usages: "
-      echo "require "{Class\,,PathManager\,,Boot2DockerManager\,,DockerManager\,,DockerContainerManager\,,ConsulManager\,,NetworkManager}
+      echo "require "{Class\,,PathManager\,,Boot2DockerManager\,,DockerManager\,,DockerContainerManager\,,DnsmasqManager\,,ConsulManager\,,NetworkManager}
       exit 1
   esac
 }

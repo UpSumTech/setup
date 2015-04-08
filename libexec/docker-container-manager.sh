@@ -66,12 +66,14 @@ DockerContainerManager() {
       nginx)
         settings="nginxSettings"
         ;;
+      dnsmasq)
+        settings="dnsmasqSettings"
+        ;;
       consul)
         settings="consulSettings"
         ;;
       *)
-        echo -n "Valid options: "
-        echo "mysql, postgres, rails, nginx, consul"
+        echo "Invalid options for container name"
         exit 1
     esac
 
@@ -113,7 +115,7 @@ DockerContainerManager() {
     local instructions="$( _getInstructionsForService "$@" )"
     instructions+=( \
       "-v" \
-      "/Users/suman/Work/lp-webapp:/usr/src/app" \
+      "$HOME/Work/lp-webapp:/usr/src/app" \
     )
     echo ${instructions[@]}
   }
@@ -121,6 +123,16 @@ DockerContainerManager() {
   _runNginx() {
     set -- "nginx" "$@"
     local instructions="$( _getInstructionsForService "$@" )"
+    echo ${instructions[@]}
+  }
+
+  _runDnsmasq() {
+    set -- "dnsmasq" "$@"
+    local instructions="$( _getInstructionsForService "$@" )"
+    instructions+=( \
+      "-v" \
+      "/etc/dnsmasq.d:/etc/dnsmasq.d" \
+    )
     echo ${instructions[@]}
   }
 
@@ -190,6 +202,7 @@ DockerContainerManager() {
       ['postgres']='_runPostgres' \
       ['rails']='_runRails' \
       ['nginx']='_runNginx' \
+      ['dnsmasq']='_runDnsmasq' \
       ['consul']='_runConsul' \
     )
 
@@ -221,12 +234,14 @@ DockerContainerManager() {
       nginx)
         settings="nginxSettings"
         ;;
+      dnsmasq)
+        settings="dnsmasqSettings"
+        ;;
       consul)
         settings="consulSettings"
         ;;
       *)
-        echo -n "Valid options: "
-        echo "mysql, postgres, rails, nginx, consul"
+        echo "Invalid options for container name"
         exit 1
     esac
 

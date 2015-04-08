@@ -12,7 +12,7 @@ ConsulManager() {
   require Class
   _consulManagerConstructor=$FUNCNAME
 
-  CONSUL_DIR=$HOME/etc/consul.d
+  CONSUL_DIR="$HOME/etc/consul.d"
 
   ConsulManager:new() {
     local this="$1"
