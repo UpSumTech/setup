@@ -9,6 +9,7 @@ source "$( fullSrcDir )/../libexec/utils.sh"
 main() {
   require DnsmasqManager
   DnsmasqManager:new dmm
+  $dmm_prepare
   $dmm_register
 }
 

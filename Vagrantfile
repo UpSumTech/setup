@@ -13,8 +13,20 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # config.vm.box = "base"
   config.vm.box = "ubuntu/trusty64"
 
-  start_ip = [172,20,20,10]
+  config.vm.define "dns_server" do |n|
+    n.vm.hostname = "dns-server"
+    n.vm.network "private_network", ip: "172.20.20.10"
+    n.vm.provision "docker" do |d|
+      d.pull_images "sumanmukherjee03/dnsmasq:2.68"
+    end
+    n.vm.synced_folder ".", "/vagrant"
+
+    n.vm.provision "shell",
+      inline: "cd /vagrant && ./bin/register-containers-with-dnsmasq.sh && ./bin/run-docker-container.sh dnsmasq:2.68"
+  end
+
   no_of_nodes = 3
+  start_ip = [172,20,20,11]
   no_of_nodes.times do |i|
     config.vm.define "node#{i + 1}" do |n|
       node_name = "node#{i + 1}"
@@ -24,7 +36,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       n.vm.network "private_network", ip: external_ip
       n.vm.provision "docker" do |d|
         d.pull_images "sumanmukherjee03/consul:0.5.0"
-        d.pull_images "sumanmukherjee03/dnsmasq:2.68"
       end
       n.vm.synced_folder ".", "/vagrant"
 
@@ -36,9 +47,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       n.vm.provision "shell",
         inline: "cd /vagrant && ./bin/run-docker-container.sh consul:0.5.0 -h #{node_name} -e #{consul_env_vars}"
-
-      n.vm.provision "shell",
-        inline: "cd /vagrant && ./bin/register-containers-with-dnsmasq.sh && ./bin/run-docker-container.sh dnsmasq:2.68"
     end
   end
 
