@@ -3,9 +3,12 @@ set -e
 
 main() {
   set -- "$@" \
-    "-server" \
     "-config-dir=$CONSUL_CONFIG" \
     "-data-dir=$CONSUL_DATA"
+
+  if [[ ! -z "$SERVER" && $SERVER = 'true' ]]; then
+    set -- "$@" "-server"
+  fi
 
   if [[ -z "$JOIN_IP" && ! -z "$BOOTSTRAP" ]]; then
     set -- "$@" "-bootstrap-expect=$BOOTSTRAP"

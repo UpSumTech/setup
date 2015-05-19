@@ -26,11 +26,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   no_of_nodes = 3
-  start_ip = [172,20,20,11]
+  first_consul_server_ip = [172,20,20,11]
   no_of_nodes.times do |i|
     config.vm.define "node#{i + 1}" do |n|
       node_name = "node#{i + 1}"
-      external_ip = start_ip.tap {|arr| arr[3] += i}.join('.')
+      external_ip = first_consul_server_ip.clone.tap {|arr| arr[3] += i}.join('.')
 
       n.vm.hostname = node_name
       n.vm.network "private_network", ip: external_ip
@@ -42,12 +42,41 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       consul_env_vars = [
         "NODE_NAME=#{node_name}",
         "EXTERNAL_IP=#{external_ip}",
-        (i == 0 ? "BOOTSTRAP=#{no_of_nodes}" : "JOIN_IP=#{start_ip.join('.')}")
+        "SERVER=true",
+        (i == 0 ? "BOOTSTRAP=#{no_of_nodes}" : "JOIN_IP=#{first_consul_server_ip.join('.')}")
       ].join(" ")
 
       n.vm.provision "shell",
         inline: "cd /vagrant && ./bin/run-docker-container.sh consul:0.5.0 -h #{node_name} -e #{consul_env_vars}"
     end
+  end
+
+  config.vm.define "mysql" do |n|
+    n.vm.hostname = "mysql-server"
+    n.vm.network "private_network", ip: "172.20.20.14"
+    n.vm.provision "docker" do |d|
+      d.pull_images "sumanmukherjee03/mysql:5.7"
+      d.pull_images "sumanmukherjee03/consul:0.5.0"
+    end
+    n.vm.synced_folder ".", "/vagrant"
+
+    mysql_env_vars = [
+      "USER=root",
+      "PASSWD=welcome2mysql"
+    ].join(" ")
+
+    n.vm.provision "shell",
+      inline: "cd /vagrant && ./bin/run-docker-container.sh mysql:5.7 -h mysql -e #{mysql_env_vars}"
+
+    consul_env_vars = [
+      "NODE_NAME=mysql_server",
+      "EXTERNAL_IP=172.20.20.14",
+      "SERVER=false",
+      "JOIN_IP=#{first_consul_server_ip.join('.')}"
+    ].join(" ")
+
+    n.vm.provision "shell",
+      inline: "cd /vagrant && ./bin/run-docker-container.sh consul:0.5.0 -h mysql_server -e #{consul_env_vars}"
   end
 
   # Disable automatic box update checking. If you disable this, then
