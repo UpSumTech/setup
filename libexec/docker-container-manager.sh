@@ -144,46 +144,41 @@ DockerContainerManager() {
   _runConsul() {
     set -- "consul" "$@"
     local instructions="$( _getInstructionsForService "$@" )"
-    if [[ "$( uname -s )" =~ Linux ]]; then
-      NetworkManager:new nm1
-      local externalIP="$( eval $nm1_getIP )"
-      local bridgeIP="$( eval $nm1_getDockerBridgeIP )"
+    local hostType
 
+    if [[ "$( uname -s )" =~ Linux ]]; then
       instructions+=( \
         "-v" \
         "/mnt:/var/lib/consul" \
+        "-p" \
+        "$(getContainerPortMapping "53" "53/udp" "bridge")" \
       )
-
-      instructions+=( \
-        "-p" \
-        "$externalIP:8300:8300" \
-        "-p" \
-        "$externalIP:8301:8301" \
-        "-p" \
-        "$externalIP:8301:8301/udp" \
-        "-p" \
-        "$externalIP:8302:8302" \
-        "-p" \
-        "$externalIP:8302:8302/udp" \
-        "-p" \
-        "$externalIP:8400:8400" \
-        "-p" \
-        "$externalIP:8500:8500" \
-        "-p" \
-        "$bridgeIP:53:53/udp" \
-      )
+      hostType="external"
     else
       instructions+=( \
         "-p" \
-        "8300:8300" \
-        "-p" \
-        "8400:8400" \
-        "-p" \
-        "8500:8500" \
-        "-p" \
-        "53:53/udp" \
+        "$(getContainerPortMapping "53" "53/udp" "local")" \
       )
+      hostType="local"
     fi
+
+    instructions+=( \
+      "-p" \
+      "$(getContainerPortMapping "8300" "8300" "$hostType")" \
+      "-p" \
+      "$(getContainerPortMapping "8301" "8301" "$hostType")" \
+      "-p" \
+      "$(getContainerPortMapping "8301" "8301/udp" "$hostType")" \
+      "-p" \
+      "$(getContainerPortMapping "8302" "8302" "$hostType")" \
+      "-p" \
+      "$(getContainerPortMapping "8302" "8302/udp" "$hostType")" \
+      "-p" \
+      "$(getContainerPortMapping "8400" "8400" "$hostType")" \
+      "-p" \
+      "$(getContainerPortMapping "8500" "8500" "$hostType")" \
+    )
+
     echo ${instructions[@]}
   }
 
