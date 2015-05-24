@@ -35,6 +35,29 @@ searchArray() {
   echo "-1"
 }
 
+getContainerPortMapping() {
+  local hostPort="$1"
+  local dockerPort="$2"
+  local hostType="$3"
+  if [[ "$( uname -s )" =~ Linux ]]; then
+    require NetworkManager
+    NetworkManager:new portMappingNM1
+    if [[ "$hostType" =~ external ]]; then
+      local hostIP="$( eval $portMappingNM1_getIP )"
+      echo "$hostIP:$hostPort:$dockerPort"
+    elif [[ "$hostType" =~ bridge ]]; then
+      local bridgeIP="$( eval $portMappingNM1_getDockerBridgeIP )"
+      echo "$bridgeIP:$hostPort:$dockerPort"
+    elif [[ "$hostType" =~ local ]]; then
+      echo "$hostPort:$dockerPort"
+    else
+      err "Host type is not valid for port mapping"
+    fi
+  else
+    echo "$hostPort:$dockerPort"
+  fi
+}
+
 require() {
   case "$1" in
     Class)

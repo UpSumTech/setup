@@ -138,17 +138,6 @@ DockerContainerManager() {
       "-v" \
       "/etc/dnsmasq.d:/etc/dnsmasq.d" \
     )
-
-    if [[ "$( uname -s )" =~ Linux ]]; then
-      NetworkManager:new dnsmasqnm1
-      local externalIP="$( eval $dnsmasqnm1_getIP )"
-      local bridgeIP="$( eval $dnsmasqnm1_getDockerBridgeIP )"
-      instructions+=( \
-        "-p" \
-        "$bridgeIP:53:53/udp" \
-      )
-    fi
-
     echo ${instructions[@]}
   }
 

@@ -1,32 +1,41 @@
 #!/bin/bash
 # docker container configuration
 
+set -e
+
+fullSrcDir() {
+  echo "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+}
+source "$( fullSrcDir )/../libexec/utils.sh"
+
 ############ Default Container settings ##############
+
 declare -r -x -A mysqlSettings=( \
   ['containerName']='mysqlServer' \
-  ['port']='3306:3306' \
+  ['port']="$(getContainerPortMapping "3306" "3306" "external")" \
 )
 
 declare -r -x -A postgresSettings=( \
   ['containerName']='postgresServer' \
-  ['port']='5432:5432' \
+  ['port']="$(getContainerPortMapping "5432" "5432" "external")" \
 )
 
 declare -r -x -A railsSettings=( \
   ['containerName']='railsServer' \
-  ['port']='3000:3000' \
+  ['port']="$(getContainerPortMapping "3000" "5432" "external")" \
 )
 
 declare -r -x -A nginxSettings=( \
   ['containerName']='nginxServer' \
-  ['port']='80:80' \
+  ['port']="$(getContainerPortMapping "80" "80" "external")" \
 )
 
 declare -r -x -A dnsmasqSettings=( \
   ['containerName']='dnsmasqServer' \
+  ['port']="$(getContainerPortMapping "53" "53/udp" "bridge")" \
 )
 
 declare -r -x -A consulSettings=( \
   ['containerName']='consulAgent' \
-  ['port']='8600:8600' \
+  ['port']="$(getContainerPortMapping "8600" "8600" "local")" \
 )
