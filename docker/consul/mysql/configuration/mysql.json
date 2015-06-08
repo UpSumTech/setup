@@ -1,0 +1,14 @@
+{
+  "service": {
+    "name": "mysql-server",
+    "tags": ["5.7"],
+    "checks": [
+      {
+        "id": "mysqladmin-check",
+        "name": "Mysqladmin check",
+        "script": "/usr/local/bin/mysqladmin-check.sh",
+        "interval": "30s"
+      }
+    ]
+  }
+}

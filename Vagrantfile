@@ -56,7 +56,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     n.vm.network "private_network", ip: "172.20.20.14"
     n.vm.provision "docker" do |d|
       d.pull_images "sumanmukherjee03/mysql:5.7"
-      d.pull_images "sumanmukherjee03/consul:0.5.0"
+      d.pull_images "sumanmukherjee03/consul:mysql"
     end
     n.vm.synced_folder ".", "/vagrant"
 
@@ -76,7 +76,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     ].join(" ")
 
     n.vm.provision "shell",
-      inline: "cd /vagrant && ./bin/run-docker-container.sh consul:0.5.0 -h mysql_server -e #{consul_env_vars}"
+      inline: "cd /vagrant && ./bin/run-docker-container.sh consul:mysql --link mysqlServer:mysqlServer -h mysql_server -e #{consul_env_vars}"
   end
 
   # Disable automatic box update checking. If you disable this, then
