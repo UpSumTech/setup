@@ -1,0 +1,14 @@
+{
+  "service": {
+    "name": "postgres-server",
+    "tags": ["9.1"],
+    "checks": [
+      {
+        "id": "postgres-check",
+        "name": "Postgres check",
+        "script": "/usr/local/bin/postgres-check.sh",
+        "interval": "30s"
+      }
+    ]
+  }
+}

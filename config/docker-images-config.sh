@@ -8,5 +8,5 @@ declare -r -x -A dockerImagesRegistry=( \
   ['rails']='3.2.18,onbuild' \
   ['nginx']='1.4.6,passenger-nginx' \
   ['dnsmasq']='2.68' \
-  ['consul']='0.5.0,onbuild,mysql' \
+  ['consul']='0.5.0,onbuild,mysql,postgres' \
 )

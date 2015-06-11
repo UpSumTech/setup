@@ -79,6 +79,35 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       inline: "cd /vagrant && ./bin/run-docker-container.sh consul:mysql --link mysqlServer:mysqlServer -h mysql_server -e #{consul_env_vars}"
   end
 
+  config.vm.define "postgres" do |n|
+    n.vm.hostname = "postgres-server"
+    n.vm.network "private_network", ip: "172.20.20.15"
+    n.vm.provision "docker" do |d|
+      d.pull_images "sumanmukherjee03/postgres:9.1"
+      d.pull_images "sumanmukherjee03/consul:postgres"
+    end
+    n.vm.synced_folder ".", "/vagrant"
+
+    postgres_env_vars = [
+      "USER=root",
+      "PASSWD=welcome2psql"
+    ].join(" ")
+
+    n.vm.provision "shell",
+      inline: "cd /vagrant && ./bin/run-docker-container.sh postgres:9.1 -h postgres -e #{postgres_env_vars}"
+
+    consul_env_vars = [
+      "NODE_NAME=postgres_server",
+      "EXTERNAL_IP=172.20.20.15",
+      "SERVER=false",
+      "JOIN_IP=#{first_consul_server_ip.join('.')}"
+    ].join(" ")
+
+    n.vm.provision "shell",
+      inline: "cd /vagrant && ./bin/run-docker-container.sh consul:postgres --link postgresServer:postgresServer -h postgres_server -e #{consul_env_vars}"
+  end
+
+
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
   # `vagrant box outdated`. This is not recommended.
