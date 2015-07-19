@@ -55,6 +55,10 @@ DnsmasqManager() {
         containerName="railsapp"
         containerAddress="172.20.20.17"
         ;;
+      nodeapp)
+        containerName="nodeapp"
+        containerAddress="172.20.20.18"
+        ;;
       *)
         echo "Invalid options for service name"
         exit 1
@@ -66,7 +70,7 @@ DnsmasqManager() {
   DnsmasqManager.registerAll() {
     local instance="$1"
     local serviceName
-    local serviceNames=( "mysqldb" "postgresdb" "railsapp" )
+    local serviceNames=( "mysqldb" "postgresdb" "railsapp" "nodeapp" )
     for serviceName in ${serviceNames[@]}; do
       DnsmasqManager.register "$instance" "$serviceName"
     done

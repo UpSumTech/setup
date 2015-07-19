@@ -1,0 +1,14 @@
+{
+  "service": {
+    "name": "node-server",
+    "tags": ["app"],
+    "checks": [
+      {
+        "id": "node-app-server-check",
+        "name": "Node check",
+        "script": "/usr/local/bin/node-app-server-check.sh",
+        "interval": "30s"
+      }
+    ]
+  }
+}

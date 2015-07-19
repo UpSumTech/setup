@@ -176,6 +176,42 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       inline: "cd /vagrant && ./bin/run-docker-container.sh consul:nginx --link nginxServer:nginxServer -h nginx_server -e #{consul_env_vars}"
   end
 
+  config.vm.define "node" do |n|
+    n.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+    end
+    n.vm.hostname = "node-server"
+    n.vm.network "private_network", ip: "172.20.20.18"
+    n.vm.provision "docker" do |d|
+      d.pull_images "sumanmukherjee03/node:onbuild"
+      d.pull_images "sumanmukherjee03/consul:node"
+    end
+    n.vm.synced_folder ".", "/vagrant"
+
+    n.vm.provision "shell",
+      inline: "mkdir -p /opt/app/current"
+    n.vm.synced_folder "~/Work/lp-builder", "/opt/app/current"
+
+    node_env_vars = [
+      "NODE_ENV=development"
+    ].join(" ")
+
+    n.vm.provision "shell",
+      inline: "docker build -t sumanmukherjee03/node:app -f /opt/app/current/CustomDockerfile /opt/app/current"
+
+    n.vm.provision "shell",
+      inline: "cd /vagrant && ./bin/run-docker-container.sh node:app -h node -dns 172.20.20.10 -e #{node_env_vars}"
+
+    consul_env_vars = [
+      "NODE_NAME=node_server",
+      "EXTERNAL_IP=172.20.20.18",
+      "SERVER=false",
+      "JOIN_IP=#{first_consul_server_ip.join('.')}"
+    ].join(" ")
+
+    n.vm.provision "shell",
+      inline: "cd /vagrant && ./bin/run-docker-container.sh consul:node --link nodeServer:nodeServer -h node_server -e #{consul_env_vars}"
+  end
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs

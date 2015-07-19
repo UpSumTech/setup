@@ -65,6 +65,9 @@ DockerContainerManager() {
       rails)
         settings="railsSettings"
         ;;
+      node)
+        settings="nodeSettings"
+        ;;
       nginx)
         settings="nginxSettings"
         ;;
@@ -119,6 +122,18 @@ DockerContainerManager() {
 
   _runRails() {
     set -- "rails" "$@"
+    local instructions="$( _getInstructionsForService "$@" )"
+    if [[ "$( uname -s )" =~ Linux ]]; then
+      instructions+=( \
+        "-v" \
+        "/opt/app/current:/opt/app/current" \
+      )
+    fi
+    echo ${instructions[@]}
+  }
+
+  _runNode() {
+    set -- "node" "$@"
     local instructions="$( _getInstructionsForService "$@" )"
     if [[ "$( uname -s )" =~ Linux ]]; then
       instructions+=( \
@@ -219,6 +234,7 @@ DockerContainerManager() {
       ['mysql']='_runMysql' \
       ['postgres']='_runPostgres' \
       ['rails']='_runRails' \
+      ['node']='_runNode' \
       ['nginx']='_runNginx' \
       ['dnsmasq']='_runDnsmasq' \
       ['consul']='_runConsul' \
@@ -248,6 +264,9 @@ DockerContainerManager() {
         ;;
       rails)
         settings="railsSettings"
+        ;;
+      node)
+        settings="nodeSettings"
         ;;
       nginx)
         settings="nginxSettings"

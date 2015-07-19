@@ -25,6 +25,11 @@ declare -r -x -A railsSettings=( \
   ['port']="$(getContainerPortMapping "3000" "3000" "external")" \
 )
 
+declare -r -x -A nodeSettings=( \
+  ['containerName']='nodeServer' \
+  ['port']="$(getContainerPortMapping "8989" "8989" "external")" \
+)
+
 declare -r -x -A nginxSettings=( \
   ['containerName']='nginxServer' \
   ['port']="$(getContainerPortMapping "80" "80" "external")" \
