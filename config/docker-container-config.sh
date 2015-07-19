@@ -22,7 +22,7 @@ declare -r -x -A postgresSettings=( \
 
 declare -r -x -A railsSettings=( \
   ['containerName']='railsServer' \
-  ['port']="$(getContainerPortMapping "3000" "5432" "external")" \
+  ['port']="$(getContainerPortMapping "3000" "3000" "external")" \
 )
 
 declare -r -x -A nginxSettings=( \

@@ -107,6 +107,47 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       inline: "cd /vagrant && ./bin/run-docker-container.sh consul:postgres --link postgresServer:postgresServer -h postgres_server -e #{consul_env_vars}"
   end
 
+  config.vm.define "rails" do |n|
+    n.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+    end
+    n.vm.hostname = "rails-server"
+    n.vm.network "private_network", ip: "172.20.20.16"
+    n.vm.provision "docker" do |d|
+      d.pull_images "sumanmukherjee03/rails:onbuild"
+      d.pull_images "sumanmukherjee03/consul:rails"
+    end
+    n.vm.synced_folder ".", "/vagrant"
+
+    n.vm.provision "shell",
+      inline: "mkdir -p /opt/app/current"
+    n.vm.synced_folder "~/Work/lp-webapp", "/opt/app/current"
+
+    rails_env_vars = [
+      "RAILS_ENV=development",
+      "DB_HOST=172.20.20.14",
+      "DB_DATABASE=webapp",
+      "DB_USER=root",
+      "DB_PASSWORD=welcome2mysql",
+      "WEBAPP_USER_PREFIX=suman"
+    ].join(" ")
+
+    n.vm.provision "shell",
+      inline: "docker build -t sumanmukherjee03/rails:app -f /opt/app/current/CustomDockerfile /opt/app/current"
+
+    n.vm.provision "shell",
+      inline: "cd /vagrant && ./bin/run-docker-container.sh rails:app -h rails -e #{rails_env_vars}"
+
+    consul_env_vars = [
+      "NODE_NAME=rails_server",
+      "EXTERNAL_IP=172.20.20.16",
+      "SERVER=false",
+      "JOIN_IP=#{first_consul_server_ip.join('.')}"
+    ].join(" ")
+
+    n.vm.provision "shell",
+      inline: "cd /vagrant && ./bin/run-docker-container.sh consul:rails --link railsServer:railsServer -h rails_server -e #{consul_env_vars}"
+  end
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs

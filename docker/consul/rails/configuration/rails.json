@@ -1,0 +1,14 @@
+{
+  "service": {
+    "name": "rails-server",
+    "tags": ["app"],
+    "checks": [
+      {
+        "id": "rails-app-server-check",
+        "name": "Rails check",
+        "script": "/usr/local/bin/rails-app-server-check.sh",
+        "interval": "30s"
+      }
+    ]
+  }
+}

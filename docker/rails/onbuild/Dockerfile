@@ -26,20 +26,37 @@ RUN apt-get -qq update \
 
 RUN ldconfig /usr/local/lib
 
-USER webapp
-WORKDIR $HOME
-
-VOLUME ["$HOME/apps"]
-RUN cd $HOME/apps
-
-RUN source /.bash_profile && gem install passenger
-ONBUILD RUN source /.bash_profile \
-  && bundle install
-
-ONBUILD CMD bundle exec rake db:create db:migrate \
-  && passenger start --port 3000
-
-WORKDIR /
-USER root
+RUN mkdir -p /opt/app/
 
 EXPOSE 3000
+
+# This is a hack
+RUN usermod -u 1000 webapp
+RUN usermod -G staff webapp
+
+USER webapp
+
+RUN source /.bash_profile && gem install passenger
+
+COPY configuration/database.yml /tmp/database.yml
+
+USER root
+
+RUN mkdir -p /var/run/webapp \
+  && chown -R webapp:webapp /var/run/webapp \
+  && mkdir -p /var/log/webapp \
+  && chown -R webapp:webapp /var/log/webapp
+
+ONBUILD COPY . /opt/app/current
+
+ONBUILD RUN chown -R webapp:webapp /opt/app
+
+ONBUILD USER webapp
+
+ONBUILD WORKDIR /opt/app/current
+
+ONBUILD RUN ls -al /opt/app/current
+
+ONBUILD RUN source /.bash_profile && bundle install
+
+ONBUILD VOLUME ["/opt/app/current"]

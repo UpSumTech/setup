@@ -43,8 +43,10 @@ DockerContainerManager() {
       Class:exception "This image $imageName does not exist"
 
     local version="$( eval "echo \$${instance}_version" )"
-    [[ ! -z "$version" && "$version"=~$registeredVersions ]] || \
-      Class:exception "The version $version for image $imageName does not exist in registered versions $registeredVersions"
+    if [[ ! -z "$version" && ! "$version"=~app ]]; then
+      [[ "$version"=~$registeredVersions ]] || \
+        Class:exception "The version $version for image $imageName does not exist in registered versions $registeredVersions"
+    fi
   }
 
   _getInstructionsForService() {
@@ -118,10 +120,12 @@ DockerContainerManager() {
   _runRails() {
     set -- "rails" "$@"
     local instructions="$( _getInstructionsForService "$@" )"
-    instructions+=( \
-      "-v" \
-      "$HOME/Work/lp-webapp:/usr/src/app" \
-    )
+    if [[ "$( uname -s )" =~ Linux ]]; then
+      instructions+=( \
+        "-v" \
+        "/opt/app/current:/opt/app/current" \
+      )
+    fi
     echo ${instructions[@]}
   }
 
