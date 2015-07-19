@@ -7,9 +7,8 @@ RUN apt-get -qq update \
   && apt-get install -y dnsmasq
 
 COPY configuration/dnsmasq.conf /etc/dnsmasq.conf
-
-VOLUME ["/etc/dnsmasq.d"]
+COPY configuration/resolv.dnsmasq.conf /etc/resolv.dnsmasq.conf
 
 EXPOSE 53 53/udp
 
-CMD ["dnsmasq", "--no-daemon", "--conf-dir=/etc/dnsmasq.d"]
+CMD ["dnsmasq", "--no-daemon"]

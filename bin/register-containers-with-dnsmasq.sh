@@ -10,7 +10,7 @@ main() {
   require DnsmasqManager
   DnsmasqManager:new dmm
   $dmm_prepare
-  $dmm_register
+  $dmm_registerAll
 }
 
 [[ "$BASH_SOURCE" == "$0" ]] && main "$@"

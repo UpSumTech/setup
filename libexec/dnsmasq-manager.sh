@@ -14,39 +14,23 @@ DnsmasqManager() {
 
   _dnsmasqManagerConstructor=$FUNCNAME
 
-  DNSMASQ_CONF_DIR="/etc/dnsmasq.d"
-
   DnsmasqManager:new() {
     local this="$1"
     local constructor=$_dnsmasqManagerConstructor
-    Class:addInstanceProperty $constructor $this 'hostsFile' "$DNSMASQ_CONF_DIR/dockerhosts.conf"
-    Class:addInstanceProperty $constructor $this 'extraConfFile' "$DNSMASQ_CONF_DIR/extraConfFile.conf"
+    Class:addInstanceProperty $constructor $this 'hostsFile' '/etc/dnsmasq.hosts'
     Class:addInstanceMethod $constructor $this 'prepare' 'DnsmasqManager.prepare'
     Class:addInstanceMethod $constructor $this 'register' 'DnsmasqManager.register'
-  }
-
-  _getContainerName() {
-    local container="$1"
-    docker inspect -f "{{.Name}}" $container | sed -e 's#/##'
-  }
-
-  _getContainerAddress() {
-    local container="$1"
-    docker inspect -f "{{.NetworkSettings.IPAddress}}" "$container"
+    Class:addInstanceMethod $constructor $this 'registerAll' 'DnsmasqManager.registerAll'
   }
 
   DnsmasqManager.prepare() {
     local instance="$1"
     local hostsFile="$( eval "echo \$${instance}_hostsFile" )"
-    local extraConfFile="$( eval "echo \$${instance}_extraConfFile" )"
     NetworkManager:new dnsMasqNetManager1
     local bridgeIP="$( eval $dnsMasqNetManager1_getDockerBridgeIP )"
 
-    [[ -d "$DNSMASQ_CONF_DIR" ]] || mkdir -p "$DNSMASQ_CONF_DIR"
     echo -n '' > "$hostsFile"
-    echo -n '' > "$extraConfFile"
 
-    # echo "bind-interfaces" >> "$extraConfFile"
     # echo "listen-address=$bridgeIP" >> "$extraConfFile"
     # echo "listen-address=127.0.0.1" >> "$extraConfFile"
   }
@@ -54,13 +38,37 @@ DnsmasqManager() {
   DnsmasqManager.register() {
     local instance="$1"
     local hostsFile="$( eval "echo \$${instance}_hostsFile" )"
+    local serviceName="$2"
     local containerName
     local containerAddress
 
-    for container in $( docker ps -q ); do
-      containerName="$( _getContainerName $container )"
-      containerAddress="$( _getContainerAddress $container )"
-      echo "address=/${containerName}.dev/${containerAddress}" >> "$hostsFile"
+    case "$serviceName" in
+      mysqldb)
+        containerName="mysqldb"
+        containerAddress="172.20.20.14"
+        ;;
+      postgresdb)
+        containerName="postgresdb"
+        containerAddress="172.20.20.15"
+        ;;
+      railsapp)
+        containerName="railsapp"
+        containerAddress="172.20.20.16"
+        ;;
+      *)
+        echo "Invalid options for service name"
+        exit 1
+    esac
+
+    echo "${containerAddress} ${containerName}.dev" >> "$hostsFile"
+  }
+
+  DnsmasqManager.registerAll() {
+    local instance="$1"
+    local serviceName
+    local serviceNames=( "mysqldb" "postgresdb" "railsapp" )
+    for serviceName in ${serviceNames[@]}; do
+      DnsmasqManager.register "$instance" "$serviceName"
     done
   }
 

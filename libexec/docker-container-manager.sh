@@ -138,10 +138,24 @@ DockerContainerManager() {
   _runDnsmasq() {
     set -- "dnsmasq" "$@"
     local instructions="$( _getInstructionsForService "$@" )"
+
     instructions+=( \
       "-v" \
-      "/etc/dnsmasq.d:/etc/dnsmasq.d" \
+      "/etc/dnsmasq.hosts:/etc/dnsmasq.hosts" \
     )
+
+    if [[ "$( uname -s )" =~ Linux ]]; then
+      instructions+=( \
+        "-p" \
+        "$(getContainerPortMapping "53" "53/udp" "external")" \
+      )
+    else
+      instructions+=( \
+        "-p" \
+        "$(getContainerPortMapping "53" "53/udp" "local")" \
+      )
+    fi
+
     echo ${instructions[@]}
   }
 
