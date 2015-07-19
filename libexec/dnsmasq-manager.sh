@@ -53,7 +53,7 @@ DnsmasqManager() {
         ;;
       railsapp)
         containerName="railsapp"
-        containerAddress="172.20.20.16"
+        containerAddress="172.20.20.17"
         ;;
       *)
         echo "Invalid options for service name"

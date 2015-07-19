@@ -11,30 +11,40 @@ validate() {
 }
 
 prepareConfFile() {
+  local serviceName="$1"
+
   declare -A railsSettings=( \
-    ['containerName']='railsServer' \
+    ['ip']='172.20.20.16' \
     ['port']='3000' \
   )
 
   declare -n settings
 
+  local vhostFile
+
   if [[ -d /usr/src/vhost_templates ]]; then
     for f in /usr/src/vhost_templates/*.template; do
       if [[ -f "$f" ]]; then
-        case "$SERVICE" in
+        case "$serviceName" in
           rails)
             settings="railsSettings"
+            vhostFile="/etc/nginx/vhosts/rails.conf"
+            cp "$f" "$vhostFile"
+            sed -i.bak -e "s#RAILS_SERVER_IP#${railsSettings['ip']}#g;s#RAILS_SERVER_PORT#${railsSettings['port']}#g" "$vhostFile"
             ;;
           *)
-
+            echo "Invalid options for service name"
+            exit 1
+        esac
       fi
     done
   fi
 }
 
 main() {
-  prepareConfFile
-  exec gosu mysql "$@"
+  validate
+  prepareConfFile "$SERVICE"
+  exec "$@"
 }
 
 if [ "${1:0:1}" = '-' ]; then

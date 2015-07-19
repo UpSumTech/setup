@@ -32,5 +32,10 @@ COPY configuration/vhost_templates /usr/src/vhost_templates
 
 EXPOSE 80
 
+RUN mkdir -p /var/lib/nginx \
+  && chown -R www-data:www-data /var/lib/nginx \
+  && mkdir -p /var/log/nginx \
+  && chown -R www-data:www-data /var/log/nginx
+
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["nginx"]

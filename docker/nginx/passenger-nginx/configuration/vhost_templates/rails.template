@@ -1,13 +1,13 @@
 http {
   upstream rails_cluster {
     ip_hash;
-    server %RAILS_SERVER_IP%:%RAILS_SERVER_PORT%;
+    server RAILS_SERVER_IP:RAILS_SERVER_PORT;
   }
 
   server {
     listen 80;
     client_max_body_size 8M;
-    server_name localhost;
+    # server_name localhost;
     access_log /var/log/nginx/access.log;
     passenger_enabled on;
 

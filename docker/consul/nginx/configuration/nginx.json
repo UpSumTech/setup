@@ -1,0 +1,14 @@
+{
+  "service": {
+    "name": "nginx-server",
+    "tags": ["web"],
+    "checks": [
+      {
+        "id": "nginx-server-check",
+        "name": "Nginx check",
+        "script": "/usr/local/bin/nginx-server-check.sh",
+        "interval": "30s"
+      }
+    ]
+  }
+}
