@@ -53,6 +53,10 @@ DnsmasqManager() {
         ;;
       railsapp)
         containerName="railsapp"
+        containerAddress="172.20.20.16"
+        ;;
+      webapp)
+        containerName="webapp"
         containerAddress="172.20.20.17"
         ;;
       nodeapp)
@@ -70,7 +74,7 @@ DnsmasqManager() {
   DnsmasqManager.registerAll() {
     local instance="$1"
     local serviceName
-    local serviceNames=( "mysqldb" "postgresdb" "railsapp" "nodeapp" )
+    local serviceNames=( "mysqldb" "postgresdb" "railsapp" "webapp" "nodeapp" )
     for serviceName in ${serviceNames[@]}; do
       DnsmasqManager.register "$instance" "$serviceName"
     done
