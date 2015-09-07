@@ -44,10 +44,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         "EXTERNAL_IP=#{external_ip}",
         "SERVER=true",
         (i == 0 ? "BOOTSTRAP=#{no_of_nodes}" : "JOIN_IP=#{first_consul_server_ip.join('.')}")
-      ].join(" ")
+      ].map {|var| "-e #{var}"}.join(" ")
 
       n.vm.provision "shell",
-        inline: "cd /vagrant && ./bin/run-docker-container.sh consul:0.5.0 -h #{node_name} -e #{consul_env_vars}"
+        inline: "cd /vagrant && ./bin/run-docker-container.sh consul:0.5.0 -h #{node_name} #{consul_env_vars}"
     end
   end
 
@@ -63,20 +63,20 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     mysql_env_vars = [
       "USER=root",
       "PASSWD=welcome2mysql"
-    ].join(" ")
+    ].map {|var| "-e #{var}"}.join(" ")
 
     n.vm.provision "shell",
-      inline: "cd /vagrant && ./bin/run-docker-container.sh mysql:5.7 -h mysql -dns 172.20.20.10 -e #{mysql_env_vars}"
+      inline: "cd /vagrant && ./bin/run-docker-container.sh mysql:5.7 -h mysql --dns 172.20.20.10 #{mysql_env_vars}"
 
     consul_env_vars = [
       "NODE_NAME=mysql_server",
       "EXTERNAL_IP=172.20.20.14",
       "SERVER=false",
       "JOIN_IP=#{first_consul_server_ip.join('.')}"
-    ].join(" ")
+    ].map {|var| "-e #{var}"}.join(" ")
 
     n.vm.provision "shell",
-      inline: "cd /vagrant && ./bin/run-docker-container.sh consul:mysql --link mysqlServer:mysqlServer -h mysql_server -e #{consul_env_vars}"
+      inline: "cd /vagrant && ./bin/run-docker-container.sh consul:mysql --link mysqlServer:mysqlServer -h mysql_server #{consul_env_vars}"
   end
 
   config.vm.define "postgres" do |n|
@@ -91,20 +91,20 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     postgres_env_vars = [
       "USER=root",
       "PASSWD=welcome2psql"
-    ].join(" ")
+    ].map {|var| "-e #{var}"}.join(" ")
 
     n.vm.provision "shell",
-      inline: "cd /vagrant && ./bin/run-docker-container.sh postgres:9.1 -h postgres -dns 172.20.20.10 -e #{postgres_env_vars}"
+      inline: "cd /vagrant && ./bin/run-docker-container.sh postgres:9.1 -h postgres --dns 172.20.20.10 #{postgres_env_vars}"
 
     consul_env_vars = [
       "NODE_NAME=postgres_server",
       "EXTERNAL_IP=172.20.20.15",
       "SERVER=false",
       "JOIN_IP=#{first_consul_server_ip.join('.')}"
-    ].join(" ")
+    ].map {|var| "-e #{var}"}.join(" ")
 
     n.vm.provision "shell",
-      inline: "cd /vagrant && ./bin/run-docker-container.sh consul:postgres --link postgresServer:postgresServer -h postgres_server -e #{consul_env_vars}"
+      inline: "cd /vagrant && ./bin/run-docker-container.sh consul:postgres --link postgresServer:postgresServer -h postgres_server #{consul_env_vars}"
   end
 
   config.vm.define "rails" do |n|
@@ -125,28 +125,28 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     rails_env_vars = [
       "RAILS_ENV=development",
-      "DB_HOST=172.20.20.14",
+      "DB_HOST=mysqldb.dev",
       "DB_DATABASE=webapp",
       "DB_USER=root",
       "DB_PASSWORD=welcome2mysql",
       "WEBAPP_USER_PREFIX=suman"
-    ].join(" ")
+    ].map {|var| "-e #{var}"}.join(" ")
+
+    # n.vm.provision "shell",
+      # inline: "docker build -t sumanmukherjee03/rails:app -f /opt/app/current/CustomDockerfile /opt/app/current"
 
     n.vm.provision "shell",
-      inline: "docker build -t sumanmukherjee03/rails:app -f /opt/app/current/CustomDockerfile /opt/app/current"
-
-    n.vm.provision "shell",
-      inline: "cd /vagrant && ./bin/run-docker-container.sh rails:app -h rails -dns 172.20.20.10 -e #{rails_env_vars}"
+      inline: "cd /vagrant && ./bin/run-docker-container.sh rails:app -h rails --dns 172.20.20.10 #{rails_env_vars}"
 
     consul_env_vars = [
       "NODE_NAME=rails_server",
       "EXTERNAL_IP=172.20.20.16",
       "SERVER=false",
       "JOIN_IP=#{first_consul_server_ip.join('.')}"
-    ].join(" ")
+    ].map {|var| "-e #{var}"}.join(" ")
 
     n.vm.provision "shell",
-      inline: "cd /vagrant && ./bin/run-docker-container.sh consul:rails --link railsServer:railsServer -h rails_server -e #{consul_env_vars}"
+      inline: "cd /vagrant && ./bin/run-docker-container.sh consul:rails --link railsServer:railsServer -h rails_server #{consul_env_vars}"
   end
 
   config.vm.define "nginx" do |n|
@@ -160,20 +160,20 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     nginx_env_vars = [
       "SERVICE=rails",
-    ].join(" ")
+    ].map {|var| "-e #{var}"}.join(" ")
 
     n.vm.provision "shell",
-      inline: "cd /vagrant && ./bin/run-docker-container.sh nginx:passenger-nginx -h nginx -e #{nginx_env_vars}"
+      inline: "cd /vagrant && ./bin/run-docker-container.sh nginx:passenger-nginx -h nginx --dns 172.20.20.10 #{nginx_env_vars}"
 
     consul_env_vars = [
       "NODE_NAME=nginx_server",
       "EXTERNAL_IP=172.20.20.17",
       "SERVER=false",
       "JOIN_IP=#{first_consul_server_ip.join('.')}"
-    ].join(" ")
+    ].map {|var| "-e #{var}"}.join(" ")
 
     n.vm.provision "shell",
-      inline: "cd /vagrant && ./bin/run-docker-container.sh consul:nginx --link nginxServer:nginxServer -h nginx_server -e #{consul_env_vars}"
+      inline: "cd /vagrant && ./bin/run-docker-container.sh consul:nginx --link nginxServer:nginxServer -h nginx_server #{consul_env_vars}"
   end
 
   config.vm.define "node" do |n|
@@ -194,23 +194,25 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     node_env_vars = [
       "NODE_ENV=development"
-    ].join(" ")
+    ].map {|var| "-e #{var}"}.join(" ")
 
     n.vm.provision "shell",
       inline: "docker build -t sumanmukherjee03/node:app -f /opt/app/current/CustomDockerfile /opt/app/current"
 
     n.vm.provision "shell",
-      inline: "cd /vagrant && ./bin/run-docker-container.sh node:app -h node -dns 172.20.20.10 -e #{node_env_vars}"
+      inline: "cd /vagrant && ./bin/run-docker-container.sh node:app -h node --dns 172.20.20.10 #{node_env_vars}"
 
     consul_env_vars = [
       "NODE_NAME=node_server",
       "EXTERNAL_IP=172.20.20.18",
       "SERVER=false",
       "JOIN_IP=#{first_consul_server_ip.join('.')}"
-    ].join(" ")
+    ].map {|var| "-e #{var}"}.join(" ")
 
     n.vm.provision "shell",
-      inline: "cd /vagrant && ./bin/run-docker-container.sh consul:node --link nodeServer:nodeServer -h node_server -e #{consul_env_vars}"
+      inline: "cd /vagrant && ./bin/run-docker-container.sh consul:node --link nodeServer:nodeServer -h node_server #{consul_env_vars}"
+  end
+
   end
 
   # Disable automatic box update checking. If you disable this, then
