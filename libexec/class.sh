@@ -5,7 +5,7 @@ Class() {
   declare -A colors=( ['red']='\e[0;31m' ['none']='\e[0m' )
 
   Class:exception() {
-    echo -e "${colors["red"]} Error : $@${colors["none"]}" >/dev/stderr
+    echo "Error : $@" >/dev/stderr
     exit 1
   }
 
