@@ -14,7 +14,7 @@ prepareConfFile() {
   local serviceName="$1"
 
   declare -A railsSettings=( \
-    ['ip']='172.20.20.16' \
+    ['ip']='railsapp.dev' \
     ['port']='3000' \
   )
 
