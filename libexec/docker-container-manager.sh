@@ -1,8 +1,6 @@
 #!/bin/bash
 # docker container manager
 
-set -e
-
 fullSrcDir() {
   echo "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 }
@@ -51,7 +49,6 @@ DockerContainerManager() {
 
   _getInstructionsForService() {
     local serviceName="$1"
-    local envVars="${@:2}"
 
     declare -n settings
 
@@ -100,29 +97,26 @@ DockerContainerManager() {
       )
     fi
 
-    local envVar
-    for envVar in ${envVars[@]}; do
-      instructions+=( '-e' "$envVar" )
-    done
+    # local envVar
+    # for envVar in ${envVars[@]}; do
+      # instructions+=( '-e' "$envVar" )
+    # done
 
     echo "${instructions[@]}"
   }
 
   _runMysql() {
-    set -- "mysql" "$@"
-    local instructions="$( _getInstructionsForService "$@" )"
+    local instructions="$( _getInstructionsForService "mysql" )"
     echo ${instructions[@]}
   }
 
   _runPostgres() {
-    set -- "postgres" "$@"
-    local instructions=( "$( _getInstructionsForService "$@" )" )
+    local instructions=( "$( _getInstructionsForService "postgres" )" )
     echo ${instructions[@]}
   }
 
   _runRails() {
-    set -- "rails" "$@"
-    local instructions="$( _getInstructionsForService "$@" )"
+    local instructions="$( _getInstructionsForService "rails" )"
     if [[ "$( uname -s )" =~ Linux ]]; then
       instructions+=( \
         "-v" \
@@ -133,8 +127,7 @@ DockerContainerManager() {
   }
 
   _runNode() {
-    set -- "node" "$@"
-    local instructions="$( _getInstructionsForService "$@" )"
+    local instructions="$( _getInstructionsForService "node" )"
     if [[ "$( uname -s )" =~ Linux ]]; then
       instructions+=( \
         "-v" \
@@ -145,14 +138,12 @@ DockerContainerManager() {
   }
 
   _runNginx() {
-    set -- "nginx" "$@"
-    local instructions="$( _getInstructionsForService "$@" )"
+    local instructions="$( _getInstructionsForService "nginx" )"
     echo ${instructions[@]}
   }
 
   _runDnsmasq() {
-    set -- "dnsmasq" "$@"
-    local instructions="$( _getInstructionsForService "$@" )"
+    local instructions="$( _getInstructionsForService "dnsmasq" )"
 
     instructions+=( \
       "-v" \
@@ -175,8 +166,7 @@ DockerContainerManager() {
   }
 
   _runConsul() {
-    set -- "consul" "$@"
-    local instructions="$( _getInstructionsForService "$@" )"
+    local instructions="$( _getInstructionsForService "consul" )"
     local hostType
 
     if [[ "$( uname -s )" =~ Linux ]]; then
@@ -217,18 +207,8 @@ DockerContainerManager() {
 
   DockerContainerManager.start() {
     local instance="$1"
-    set -- "${@:2}"
-
-    local indexOfEnvVars=$( echo "$( searchArray "-e" "$@" )" | bc )
-    local envVars=""
-    local otherOptions=""
-
-    if [[ $indexOfEnvVars -gt 0 ]]; then
-      envVars="${@:(($indexOfEnvVars+1))}"
-      if [[ $indexOfEnvVars -gt 1 ]]; then
-        otherOptions="${@:1:(($indexOfEnvVars-1))}"
-      fi
-    fi
+    local option
+    local args=()
 
     declare -A ROUTING_TABLE=( \
       ['mysql']='_runMysql' \
@@ -242,10 +222,64 @@ DockerContainerManager() {
 
     local imageName="$( eval "echo \$${instance}_imageName" )"
     local version="$( eval "echo \$${instance}_version" )"
-    local fnName="$( echo "${ROUTING_TABLE["$imageName"]}" )"
-    local instructions=( "$( eval "$fnName" "$envVars" )" )
 
-    instructions+=( "$otherOptions" "sumanmukherjee03/$imageName:$version" )
+    set -- "${@:2}"
+
+    while getopts “h:e:v:p:l:-:” option; do
+      case $option in
+        h)
+          args+=( "-h $OPTARG" )
+          ;;
+        e)
+          args+=( "-e $OPTARG" )
+          ;;
+        v)
+          args+=( "-v $OPTARG" )
+          ;;
+        p)
+          args+=( "-p $OPTARG" )
+          ;;
+        -)
+          if [[ "${OPTARG}" =~ .*=.* ]]; then
+            option=${OPTARG/=*/}
+            OPTARG=${OPTARG#*=}
+            case $option in
+              dns)
+                args+=( "--dns=$OPTARG" )
+                ;;
+              *)
+                Class:exception "The options were not valid for starting a docker container"
+            esac
+            ((OPTIND--))
+          else
+            option="$OPTARG"
+            OPTARG=(${@:OPTIND:1})
+            case $option in
+              dns)
+                args+=( "--dns $OPTARG" )
+                ;;
+              link)
+                args+=( "--link $OPTARG" )
+                ;;
+              *)
+                Class:exception "The options were not valid for starting a docker container"
+            esac
+          fi
+          ((OPTIND+=1))
+          continue
+          ;;
+        *)
+          Class:exception "The options were not valid for starting a docker container"
+      esac
+    done
+
+    local fnName="$( echo "${ROUTING_TABLE["$imageName"]}" )"
+    local instructions=( "$( eval "$fnName" )" )
+
+    instructions+=( "${args[@]}" "sumanmukherjee03/$imageName:$version" )
+
+    echo "Command being being executed -----"
+    echo "${instructions[@]}"
 
     exec ${instructions[@]}
   }
