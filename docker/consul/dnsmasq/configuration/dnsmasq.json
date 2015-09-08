@@ -1,0 +1,14 @@
+{
+  "service": {
+    "name": "dnsmasq-server",
+    "tags": ["2.68"],
+    "checks": [
+      {
+        "id": "dnsmasq-check",
+        "name": "Dnsmasq check",
+        "script": "/usr/local/bin/dnsmasq-check.sh",
+        "interval": "30s"
+      }
+    ]
+  }
+}

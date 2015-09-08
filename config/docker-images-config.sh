@@ -9,5 +9,5 @@ declare -r -x -A dockerImagesRegistry=( \
   ['node']='v0.10.29,v0.12.7,onbuild' \
   ['nginx']='1.4.6,passenger-nginx' \
   ['dnsmasq']='2.68' \
-  ['consul']='0.5.0,onbuild,mysql,postgres,rails,node,nginx' \
+  ['consul']='0.5.0,onbuild,mysql,postgres,rails,node,nginx,dnsmasq' \
 )
