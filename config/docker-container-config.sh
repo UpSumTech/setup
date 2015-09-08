@@ -42,5 +42,4 @@ declare -r -x -A dnsmasqSettings=( \
 
 declare -r -x -A consulSettings=( \
   ['containerName']='consulAgent' \
-  ['port']="$(getContainerPortMapping "8600" "8600" "local")" \
 )

@@ -97,11 +97,6 @@ DockerContainerManager() {
       )
     fi
 
-    # local envVar
-    # for envVar in ${envVars[@]}; do
-      # instructions+=( '-e' "$envVar" )
-    # done
-
     echo "${instructions[@]}"
   }
 
@@ -174,13 +169,13 @@ DockerContainerManager() {
         "-v" \
         "/mnt:/var/lib/consul" \
         "-p" \
-        "$(getContainerPortMapping "53" "53/udp" "bridge")" \
+        "$(getContainerPortMapping "8600" "53/udp" "external")" \
       )
       hostType="external"
     else
       instructions+=( \
         "-p" \
-        "$(getContainerPortMapping "53" "53/udp" "local")" \
+        "$(getContainerPortMapping "8600" "53/udp" "local")" \
       )
       hostType="local"
     fi
