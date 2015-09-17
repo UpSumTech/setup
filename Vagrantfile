@@ -158,19 +158,20 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define "nginx" do |n|
     n.vm.hostname = "nginx-server"
     n.vm.network "private_network", ip: "172.20.20.17"
+    n.vm.synced_folder ".", "/vagrant"
+
+    n.vm.provision "shell", path: "bin/setup-consul-template.sh"
+
     n.vm.provision "docker" do |d|
       d.pull_images "sumanmukherjee03/nginx:passenger-nginx"
       d.pull_images "sumanmukherjee03/consul:nginx"
     end
-    n.vm.synced_folder ".", "/vagrant"
-
-    nginx_env_vars = [
-      "SERVICE=rails",
-    ].map {|var| "-e #{var}"}.join(" ")
 
     n.vm.provision "shell",
-      inline: "cd /vagrant && ./bin/run-docker-container.sh nginx:passenger-nginx -h nginx --dns 172.20.20.10 #{nginx_env_vars}"
+      inline: "cd /vagrant && ./bin/run-docker-container.sh nginx:passenger-nginx -h nginx --dns 172.20.20.10"
 
+    n.vm.provision :shell, :inline => "cp /vagrant/upstart_configurations/nginx-consul-template.conf /etc/init/nginx-consul-template.conf", run: "always"
+    n.vm.provision :shell, :inline => "sudo initctl emit vagrant-ready", run: "always"
     consul_env_vars = [
       "NODE_NAME=nginx_server",
       "EXTERNAL_IP=172.20.20.17",
