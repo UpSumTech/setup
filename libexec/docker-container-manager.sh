@@ -134,6 +134,12 @@ DockerContainerManager() {
 
   _runNginx() {
     local instructions="$( _getInstructionsForService "nginx" )"
+    if [[ "$( uname -s )" =~ Linux ]]; then
+      instructions+=( \
+        "-v" \
+        "/etc/nginx/vhosts:/etc/nginx/vhosts" \
+      )
+    fi
     echo ${instructions[@]}
   }
 
