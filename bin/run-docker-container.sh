@@ -24,7 +24,6 @@ usage() {
   "
 }
 
-
 main() {
   require DockerContainerManager
   DockerContainerManager:new dcm1 "${@:1:1}"
