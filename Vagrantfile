@@ -49,16 +49,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     n.vm.provision "shell",
       inline: "cd /vagrant && ./bin/register-containers-with-dnsmasq.sh && ./bin/run-docker-container.sh dnsmasq:2.68"
-
-    consul_env_vars = [
-      "NODE_NAME=dnsmasq_server",
-      "EXTERNAL_IP=172.20.20.10",
-      "SERVER=false",
-      "JOIN_IP=#{first_consul_server_ip.join('.')}"
-    ].map {|var| "-e #{var}"}.join(" ")
-
-    n.vm.provision "shell",
-      inline: "cd /vagrant && ./bin/run-docker-container.sh consul:dnsmasq --link dnsmasqServer:dnsmasqServer -h dnsmasq_server #{consul_env_vars}"
   end
 
   config.vm.define "mysql" do |n|
