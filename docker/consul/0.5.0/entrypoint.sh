@@ -8,6 +8,8 @@ main() {
 
   if [[ ! -z "$SERVER" && $SERVER = 'true' ]]; then
     set -- "$@" "-server"
+  elif [[ ! -z "$SERVER" && $SERVER = 'false' && -f "/service-def-setup.sh" ]]; then
+    $(/service-def-setup.sh)
   fi
 
   if [[ -z "$JOIN_IP" && ! -z "$BOOTSTRAP" ]]; then

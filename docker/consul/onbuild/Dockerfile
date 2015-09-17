@@ -3,6 +3,7 @@ MAINTAINER Suman Mukherjee <sumanmukherjee03@gmail.com>
 
 ONBUILD COPY ./healthcheck-setup.sh /healthcheck-setup.sh
 ONBUILD RUN ["/bin/bash", "/healthcheck-setup.sh"]
-
 ONBUILD ADD ./healthcheck /usr/local/bin
+
+ONBUILD COPY ./service-def-setup.sh /service-def-setup.sh
 ONBUILD ADD ./configuration /etc/consul.d
