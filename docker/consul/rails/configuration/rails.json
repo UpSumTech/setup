@@ -2,6 +2,9 @@
   "service": {
     "name": "rails-server",
     "tags": ["app"],
+    "address": "EXTERNAL_IP",
+    "port": EXTERNAL_PORT,
+    "id": "SERVICE_ID",
     "checks": [
       {
         "id": "rails-app-server-check",
