@@ -52,8 +52,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.define "mysql" do |n|
+    external_ip = "172.20.20.14"
     n.vm.hostname = "mysql-server"
-    n.vm.network "private_network", ip: "172.20.20.14"
+    n.vm.network "private_network", ip: external_ip
     n.vm.provision "docker" do |d|
       d.pull_images "sumanmukherjee03/mysql:5.7"
       d.pull_images "sumanmukherjee03/consul:mysql"
@@ -70,7 +71,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     consul_env_vars = [
       "NODE_NAME=mysql_server",
-      "EXTERNAL_IP=172.20.20.14",
+      "EXTERNAL_IP=#{external_ip}",
+      "EXTERNAL_PORT=3306",
+      "SERVICE_ID=mysqldb1",
       "SERVER=false",
       "JOIN_IP=#{first_consul_server_ip.join('.')}"
     ].map {|var| "-e #{var}"}.join(" ")
