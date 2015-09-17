@@ -111,11 +111,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.define "rails" do |n|
+    external_ip = "172.20.20.16"
     n.vm.provider "virtualbox" do |vb|
       vb.memory = "1024"
     end
     n.vm.hostname = "rails-server"
-    n.vm.network "private_network", ip: "172.20.20.16"
+    n.vm.network "private_network", ip: external_ip
     n.vm.provision "docker" do |d|
       d.pull_images "sumanmukherjee03/rails:onbuild"
       d.pull_images "sumanmukherjee03/consul:rails"
@@ -143,7 +144,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     consul_env_vars = [
       "NODE_NAME=rails_server",
-      "EXTERNAL_IP=172.20.20.16",
+      "EXTERNAL_IP=#{external_ip}",
+      "EXTERNAL_PORT=3000",
+      "SERVICE_ID=railsapp1",
       "SERVER=false",
       "JOIN_IP=#{first_consul_server_ip.join('.')}"
     ].map {|var| "-e #{var}"}.join(" ")
