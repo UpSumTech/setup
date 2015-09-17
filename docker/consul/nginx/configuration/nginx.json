@@ -2,6 +2,9 @@
   "service": {
     "name": "nginx-server",
     "tags": ["web"],
+    "address": "EXTERNAL_IP",
+    "port": EXTERNAL_PORT,
+    "id": "SERVICE_ID",
     "checks": [
       {
         "id": "nginx-server-check",
