@@ -4,7 +4,7 @@
 if [[ ! -f /usr/local/bin/consul-template ]]; then
   apt-get install -y golang
   apt-get install -y gccgo-go
-  apt-get install bison
+  apt-get install -y bison
 
   which gvm &>/dev/null || \
     curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer | bash
@@ -27,5 +27,3 @@ if [[ ! -f /usr/local/bin/consul-template ]]; then
     ln -s /usr/local/consul-template/bin/consul-template /usr/local/bin/
   fi
 fi
-
-exit 0
