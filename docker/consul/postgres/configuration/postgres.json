@@ -2,6 +2,9 @@
   "service": {
     "name": "postgres-server",
     "tags": ["9.1"],
+    "address": "EXTERNAL_IP",
+    "port": EXTERNAL_PORT,
+    "id": "SERVICE_ID",
     "checks": [
       {
         "id": "postgres-check",
