@@ -192,7 +192,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       run: "always"
 
     n.vm.provision :shell,
-      inline: "sudo initctl emit vagrant-ready",
+      inline: "sudo initctl emit containers-ready",
       run: "always"
   end
 
