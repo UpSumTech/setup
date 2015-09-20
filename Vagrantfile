@@ -83,8 +83,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.define "postgres" do |n|
+    external_ip = "172.20.20.15"
     n.vm.hostname = "postgres-server"
-    n.vm.network "private_network", ip: "172.20.20.15"
+    n.vm.network "private_network", ip: external_ip
     n.vm.provision "docker" do |d|
       d.pull_images "sumanmukherjee03/postgres:9.1"
       d.pull_images "sumanmukherjee03/consul:postgres"
@@ -101,7 +102,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     consul_env_vars = [
       "NODE_NAME=postgres_server",
-      "EXTERNAL_IP=172.20.20.15",
+      "EXTERNAL_IP=#{external_ip}",
+      "EXTERNAL_PORT=5432",
+      "SERVICE_ID=postgresdb1",
       "SERVER=false",
       "JOIN_IP=#{first_consul_server_ip.join('.')}"
     ].map {|var| "-e #{var}"}.join(" ")
