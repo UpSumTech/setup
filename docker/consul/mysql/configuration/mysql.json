@@ -3,7 +3,7 @@
     "name": "mysql-server",
     "tags": ["5.7"],
     "address": "EXTERNAL_IP",
-    "port": EXTERNAL_PORT,
+    "port": 3306,
     "id": "SERVICE_ID",
     "checks": [
       {

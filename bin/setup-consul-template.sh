@@ -6,7 +6,7 @@ if [[ ! -f /usr/local/bin/consul-template ]]; then
   apt-get install -y gccgo-go
   apt-get install -y bison
 
-  which gvm &>/dev/null || \
+  which gvm || \
     curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer | bash
 
   source ~/.gvm/scripts/gvm
