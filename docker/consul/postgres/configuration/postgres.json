@@ -3,7 +3,7 @@
     "name": "postgres-server",
     "tags": ["9.1"],
     "address": "EXTERNAL_IP",
-    "port": EXTERNAL_PORT,
+    "port": 5432,
     "id": "SERVICE_ID",
     "checks": [
       {
