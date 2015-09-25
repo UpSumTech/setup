@@ -1,3 +1,5 @@
+---
+# This playbook bootstraps a server
 - hosts: all
   sudo: yes
   remote_user: vagrant
@@ -5,8 +7,8 @@
   tasks:
     - name: Add a developer group
       group: name=developer
-             system=yes
-             state=present
+              system=yes
+              state=present
 
     - name: Adds a user developer to the developer and sudo groups
       user: name=developer
@@ -30,7 +32,3 @@
     - name: Pushes user's dsa key to the developer users ssh authorized keys
       copy: src=~/.ssh/id_dsa.pub dest=/home/developer/.ssh/authorized_keys owner=developer mode=0600
       when: rsa|failed
-
-    - name: Checks if resolver is working properly for carrying out further tasks
-      command: host -t A google.com
-      register: ns

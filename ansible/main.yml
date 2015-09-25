@@ -1,0 +1,16 @@
+---
+# This playbook deploys the whole stack
+- hosts: all
+  gather_facts: True
+  sudo: yes
+  remote_user: developer
+  roles:
+    - common
+
+- hosts: mysql
+  gather_facts: True
+  sudo: yes
+  remote_user: developer
+  roles:
+    - docker
+    - mysql

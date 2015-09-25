@@ -1,0 +1,68 @@
+---
+# These tasks pull the containers
+- name: Pull mysql and consul containers
+  shell: "docker pull {{item}}"
+  with_items:
+    - "{{ mysql_image }}:{{ mysql_tag }}"
+    - "{{ consul_image }}:{{ consul_tag }}"
+  when: install_docker_py|success
+
+- name: Remove existing mysql container
+  docker:
+    name: mysqlServer
+    image: "{{ mysql_image }}:{{ mysql_tag }}"
+    state: absent
+  register: removed_mysql_container
+
+- name: Remove existing consul container
+  docker:
+    name: consulAgent
+    image: "{{ consul_image }}:{{ consul_tag }}"
+    state: absent
+  register: removed_consul_container
+
+- name: Start mysql container
+  docker:
+    name: "{{ mysql_container_name }}"
+    image: "{{ mysql_image }}:{{ mysql_tag }}"
+    ports:
+      - "{{ ansible_ssh_host }}:{{ mysql_port }}:{{ mysql_port }}"
+    dns:
+      - "{{ mysql_dns }}"
+    env:
+      USER: "{{ mysql_user }}"
+      PASSWD: "{{ mysql_passwd }}"
+    hostname: mysql
+    detach: True
+    pull: always
+    state: started
+  when: removed_mysql_container|success
+
+- name: Start consul container
+  docker:
+    name: "{{ consul_container_name }}"
+    image: "{{ consul_image }}:{{ consul_tag }}"
+    ports:
+      - "{{ ansible_ssh_host }}:8600:53/udp"
+      - "{{ ansible_ssh_host }}:8300:8300"
+      - "{{ ansible_ssh_host }}:8301:8301"
+      - "{{ ansible_ssh_host }}:8301:8301/udp"
+      - "{{ ansible_ssh_host }}:8302:8302"
+      - "{{ ansible_ssh_host }}:8302:8302/udp"
+      - "{{ ansible_ssh_host }}:8400:8400"
+      - "{{ ansible_ssh_host }}:8500:8500"
+    links:
+      - "{{ mysql_container_name }}:{{ mysql_container_name }}"
+    dns:
+      - "{{ consul_dns }}"
+    env:
+      NODE_NAME: "{{ consul_node_name }}"
+      EXTERNAL_IP: "{{ ansible_ssh_host }}"
+      SERVICE_ID: "{{ consul_service_id }}"
+      SERVER: "{{ is_consul_server }}"
+      JOIN_IP: "{{ consul_join_ip }}"
+    hostname: "{{ consul_node_name }}"
+    detach: True
+    pull: always
+    state: started
+  when: removed_consul_container|success

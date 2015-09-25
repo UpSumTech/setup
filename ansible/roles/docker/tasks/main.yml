@@ -1,0 +1,20 @@
+---
+# These tasks install docker and its dependencies
+- name: Install apt packages
+  apt: "name='{{ item }}' state=present update_cache=yes install_recommends=no"
+  with_items:
+    - curl
+    - git
+    - python-pip
+
+- name: Install docker on host
+  shell: >
+    which docker ||
+    curl -sSL https://get.docker.com/gpg | sudo apt-key add - &&
+    curl -sSL https://get.docker.com/ | sh
+  register: install_docker
+
+- name: Install docker-py
+  pip: name=docker-py version=1.1.0
+  register: install_docker_py
+  when: install_docker|success

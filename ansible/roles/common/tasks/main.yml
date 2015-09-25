@@ -1,0 +1,5 @@
+---
+# These tasks installs common packages on all the servers
+- name: Checks if resolver is working properly for carrying out further tasks
+  command: host -t A google.com
+  register: ns
