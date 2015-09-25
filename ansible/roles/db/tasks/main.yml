@@ -1,18 +1,18 @@
 ---
 # These tasks pull the containers
-- name: Pull mysql and consul containers
+- name: Pull db and consul containers
   shell: "docker pull {{item}}"
   with_items:
-    - "{{ mysql_image }}:{{ mysql_tag }}"
+    - "{{ db_image }}:{{ db_version }}"
     - "{{ consul_image }}:{{ consul_tag }}"
   when: install_docker_py|success
 
-- name: Remove existing mysql container
+- name: Remove existing db container
   docker:
-    name: mysqlServer
-    image: "{{ mysql_image }}:{{ mysql_tag }}"
+    name: "{{ db_container_name }}"
+    image: "{{ db_image }}:{{ db_version }}"
     state: absent
-  register: removed_mysql_container
+  register: removed_db_container
 
 - name: Remove existing consul container
   docker:
@@ -21,22 +21,22 @@
     state: absent
   register: removed_consul_container
 
-- name: Start mysql container
+- name: Start db container
   docker:
-    name: "{{ mysql_container_name }}"
-    image: "{{ mysql_image }}:{{ mysql_tag }}"
+    name: "{{ db_container_name }}"
+    image: "{{ db_image }}:{{ db_version }}"
     ports:
-      - "{{ ansible_ssh_host }}:{{ mysql_port }}:{{ mysql_port }}"
+      - "{{ ansible_ssh_host }}:{{ db_port }}:{{ db_port }}"
     dns:
-      - "{{ mysql_dns }}"
+      - "{{ db_dns }}"
     env:
-      USER: "{{ mysql_user }}"
-      PASSWD: "{{ mysql_passwd }}"
-    hostname: mysql
+      USER: "{{ db_user }}"
+      PASSWD: "{{ db_passwd }}"
+    hostname: "{{ db_hostname }}"
     detach: True
     pull: always
     state: started
-  when: removed_mysql_container|success
+  when: removed_db_container|success
 
 - name: Start consul container
   docker:
@@ -52,7 +52,7 @@
       - "{{ ansible_ssh_host }}:8400:8400"
       - "{{ ansible_ssh_host }}:8500:8500"
     links:
-      - "{{ mysql_container_name }}:{{ mysql_container_name }}"
+      - "{{ db_container_name }}:{{ db_container_name }}"
     dns:
       - "{{ consul_dns }}"
     env:

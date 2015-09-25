@@ -7,10 +7,23 @@
   roles:
     - common
 
-- hosts: mysql
+- hosts: dc1-db
   gather_facts: True
   sudo: yes
   remote_user: developer
   roles:
     - docker
-    - mysql
+
+- hosts: dc1-mysql
+  gather_facts: True
+  sudo: yes
+  remote_user: developer
+  roles:
+    - { role: db, type: 'mysql', db_user: root, db_passwd: 'welcome2mysql', db_port: 3306, db_version: '5.7' }
+
+- hosts: dc1-postgres
+  gather_facts: True
+  sudo: yes
+  remote_user: developer
+  roles:
+    - { role: db, type: 'postgres', db_user: root, db_passwd: 'welcome2psql', db_port: 5432, db_version: '9.1' }

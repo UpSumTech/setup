@@ -1,2 +1,15 @@
-[mysql]
+[dc1-mysql]
 mysqldb1.dev ansible_ssh_host=172.20.20.14
+
+[dc1-postgres]
+postgresdb1.dev ansible_ssh_host=172.20.20.15
+
+[dc1-db:children]
+dc1-mysql
+dc1-postgres
+
+[dc1:children]
+dc1-db
+
+[datacenter:children]
+dc1

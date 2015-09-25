@@ -59,38 +59,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define "mysql" do |n|
     n.vm.hostname = "mysqldb1.dev"
     n.vm.network "private_network", ip: "172.20.20.14"
-    n.vm.synced_folder ".", "/vagrant"
   end
 
   config.vm.define "postgres" do |n|
-    external_ip = "172.20.20.15"
-    n.vm.hostname = "postgres-server"
-    n.vm.network "private_network", ip: external_ip
-    n.vm.provision "docker" do |d|
-      d.pull_images "sumanmukherjee03/postgres:9.1"
-      d.pull_images "sumanmukherjee03/consul:postgres"
-    end
-    n.vm.synced_folder ".", "/vagrant"
-
-    postgres_env_vars = [
-      "USER=root",
-      "PASSWD=welcome2psql"
-    ].map {|var| "-e #{var}"}.join(" ")
-
-    n.vm.provision "shell",
-      inline: "cd /vagrant && ./bin/run-docker-container.sh postgres:9.1 -h postgres --dns 172.20.20.10 #{postgres_env_vars}"
-
-    consul_env_vars = [
-      "NODE_NAME=postgres_server",
-      "EXTERNAL_IP=#{external_ip}",
-      "EXTERNAL_PORT=5432",
-      "SERVICE_ID=postgresdb1",
-      "SERVER=false",
-      "JOIN_IP=#{first_consul_server_ip.join('.')}"
-    ].map {|var| "-e #{var}"}.join(" ")
-
-    n.vm.provision "shell",
-      inline: "cd /vagrant && ./bin/run-docker-container.sh consul:postgres --link postgresServer:postgresServer -h postgres_server #{consul_env_vars}"
+    n.vm.hostname = "postgresdb1.dev"
+    n.vm.network "private_network", ip: "172.20.20.15"
   end
 
   config.vm.define "rails" do |n|
