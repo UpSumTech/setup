@@ -1,0 +1,11 @@
+---
+# This file contains the variables for consul client
+
+consul_container_name: consulAgent
+consul_image: sumanmukherjee03/consul
+consul_tag: '{{ service_type }}'
+consul_dns: "{{ hostvars['dnsmasq1.dev']['ansible_ssh_host'] }}"
+consul_node_name: '{{ service_type }}_server'
+consul_service_id: '{{ service_type }}service'
+first_consul_server_ip: "{{ hostvars['consulserver1.dev']['ansible_ssh_host'] }}"
+consul_service_name: "{{ service_type }}Server"

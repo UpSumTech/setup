@@ -5,12 +5,3 @@ db_container_name: '{{ type }}Server'
 db_image: 'sumanmukherjee03/{{ type }}'
 db_dns: 172.20.20.10
 db_hostname: '{{ type }}'
-
-consul_container_name: consulAgent
-consul_image: sumanmukherjee03/consul
-consul_tag: '{{ type }}'
-consul_dns: 172.20.20.10
-consul_node_name: '{{ type }}_server'
-consul_service_id: '{{ type }}db1'
-is_consul_server: false
-consul_join_ip: 172.20.20.11

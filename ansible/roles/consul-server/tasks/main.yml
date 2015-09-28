@@ -1,0 +1,44 @@
+---
+# These tasks pull the containers
+
+- name: Pull consul containers
+  shell: "docker pull {{item}}"
+  with_items:
+    - "{{ consul_image }}:{{ consul_tag }}"
+  when: install_docker_py|success
+
+- name: Remove existing consul container
+  docker:
+    name: consulAgent
+    image: "{{ consul_image }}:{{ consul_tag }}"
+    state: absent
+  register: removed_consul_container
+
+- name: Start consul server container
+  docker:
+    name: "{{ consul_container_name }}"
+    image: "{{ consul_image }}:{{ consul_tag }}"
+    ports:
+      - "{{ ansible_ssh_host }}:8600:53/udp"
+      - "{{ ansible_ssh_host }}:8300:8300"
+      - "{{ ansible_ssh_host }}:8301:8301"
+      - "{{ ansible_ssh_host }}:8301:8301/udp"
+      - "{{ ansible_ssh_host }}:8302:8302"
+      - "{{ ansible_ssh_host }}:8302:8302/udp"
+      - "{{ ansible_ssh_host }}:8400:8400"
+      - "{{ ansible_ssh_host }}:8500:8500"
+    dns:
+      - "{{ consul_dns }}"
+    env:
+      NODE_NAME: "{{ consul_node_name }}"
+      EXTERNAL_IP: "{{ ansible_ssh_host }}"
+      SERVER: "true"
+      BOOTSTRAP: "{{ no_of_nodes | default() }}"
+      JOIN_IP: "{{ first_consul_server_ip | default() }}"
+    volumes:
+      - "/mnt:/var/lib/consul"
+    hostname: "{{ consul_node_name }}"
+    detach: True
+    pull: always
+    state: started
+  when: removed_consul_container|success

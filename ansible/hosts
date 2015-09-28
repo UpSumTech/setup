@@ -1,3 +1,11 @@
+[dc1-dns]
+dnsmasq1.dev ansible_ssh_host=172.20.20.10
+
+[dc1-consul-servers]
+consulserver1.dev ansible_ssh_host=172.20.20.11
+consulserver2.dev ansible_ssh_host=172.20.20.12
+consulserver3.dev ansible_ssh_host=172.20.20.13
+
 [dc1-mysql]
 mysqldb1.dev ansible_ssh_host=172.20.20.14
 
@@ -9,6 +17,8 @@ dc1-mysql
 dc1-postgres
 
 [dc1:children]
+dc1-dns
+dc1-consul-servers
 dc1-db
 
 [datacenter:children]

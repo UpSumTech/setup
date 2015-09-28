@@ -7,32 +7,6 @@ VAGRANTFILE_API_VERSION = "2"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "ubuntu/trusty64"
 
-  no_of_nodes = 3
-  first_consul_server_ip = [172,20,20,11]
-  no_of_nodes.times do |i|
-    config.vm.define "node#{i + 1}" do |n|
-      node_name = "node#{i + 1}"
-      external_ip = first_consul_server_ip.clone.tap {|arr| arr[3] += i}.join('.')
-
-      n.vm.hostname = node_name
-      n.vm.network "private_network", ip: external_ip
-      n.vm.provision "docker" do |d|
-        d.pull_images "sumanmukherjee03/consul:0.5.0"
-      end
-      n.vm.synced_folder ".", "/vagrant"
-
-      consul_env_vars = [
-        "NODE_NAME=#{node_name}",
-        "EXTERNAL_IP=#{external_ip}",
-        "SERVER=true",
-        (i == 0 ? "BOOTSTRAP=#{no_of_nodes}" : "JOIN_IP=#{first_consul_server_ip.join('.')}")
-      ].map {|var| "-e #{var}"}.join(" ")
-
-      n.vm.provision "shell",
-        inline: "cd /vagrant && ./bin/run-docker-container.sh consul:0.5.0 -h #{node_name} #{consul_env_vars}"
-    end
-  end
-
   config.vm.define "dns_server" do |n|
     n.vm.hostname = "dns-server"
     n.vm.network "private_network", ip: "172.20.20.10"
@@ -54,6 +28,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     n.vm.provision :shell,
       inline: "sudo initctl emit containers-ready",
       run: "always"
+  end
+
+  no_of_nodes = 3
+  first_consul_server_ip = [172,20,20,11]
+  no_of_nodes.times do |i|
+    config.vm.define "node#{i + 1}" do |n|
+      n.vm.hostname = "consulnode1.dev"
+      n.vm.network "private_network", ip: first_consul_server_ip.clone.tap {|arr| arr[3] += i}.join('.')
+    end
   end
 
   config.vm.define "mysql" do |n|

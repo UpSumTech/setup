@@ -7,6 +7,40 @@
   roles:
     - common
 
+- hosts: dc1-consul-servers
+  gather_facts: True
+  sudo: yes
+  remote_user: developer
+  roles:
+    - docker
+
+- hosts: "consulserver1.dev"
+  gather_facts: True
+  sudo: yes
+  remote_user: developer
+  roles:
+    - role: consul-server
+      consul_node_name: "consulserver1"
+      no_of_nodes: 3
+
+- hosts: "consulserver2.dev"
+  gather_facts: True
+  sudo: yes
+  remote_user: developer
+  roles:
+    - role: consul-server
+      consul_node_name: "consulserver2"
+      first_consul_server_ip: "{{ hostvars['consulserver1.dev']['ansible_ssh_host'] }}"
+
+- hosts: "consulserver3.dev"
+  gather_facts: True
+  sudo: yes
+  remote_user: developer
+  roles:
+    - role: consul-server
+      consul_node_name: "consulserver3"
+      first_consul_server_ip: "{{ hostvars['consulserver1.dev']['ansible_ssh_host'] }}"
+
 - hosts: dc1-db
   gather_facts: True
   sudo: yes
@@ -19,11 +53,13 @@
   sudo: yes
   remote_user: developer
   roles:
-    - { role: db, type: 'mysql', db_user: root, db_passwd: 'welcome2mysql', db_port: 3306, db_version: '5.7' }
+    - { role: db, type: 'mysql', db_user: root, db_passwd: welcome2mysql, db_port: 3306, db_version: 5.7 }
+    - { role: consul-client, service_type: mysql }
 
 - hosts: dc1-postgres
   gather_facts: True
   sudo: yes
   remote_user: developer
   roles:
-    - { role: db, type: 'postgres', db_user: root, db_passwd: 'welcome2psql', db_port: 5432, db_version: '9.1' }
+    - { role: db, type: postgres, db_user: root, db_passwd: welcome2psql, db_port: 5432, db_version: 9.1 }
+    - { role: consul-client, service_type: postgres }
