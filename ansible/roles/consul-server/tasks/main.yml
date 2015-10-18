@@ -39,6 +39,5 @@
       - "/mnt:/var/lib/consul"
     hostname: "{{ consul_node_name }}"
     detach: True
-    pull: always
     state: started
   when: removed_consul_container|success

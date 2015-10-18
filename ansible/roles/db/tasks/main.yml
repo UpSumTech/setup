@@ -26,6 +26,5 @@
       PASSWD: "{{ db_passwd }}"
     hostname: "{{ db_hostname }}"
     detach: True
-    pull: always
     state: started
   when: removed_db_container|success

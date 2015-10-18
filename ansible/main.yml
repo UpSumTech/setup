@@ -1,5 +1,6 @@
 ---
 # This playbook deploys the whole stack
+
 - hosts: all
   gather_facts: True
   sudo: yes
@@ -7,10 +8,23 @@
   roles:
     - common
 
+- hosts: dc1-dns
+  gather_facts: True
+  sudo: yes
+  remote_user: developer
+  environment:
+    HOME: "/home/developer"
+  roles:
+    - docker
+    - dns
+    - consul-template
+
 - hosts: dc1-consul-servers
   gather_facts: True
   sudo: yes
   remote_user: developer
+  environment:
+    HOME: "/home/developer"
   roles:
     - docker
 
@@ -18,6 +32,8 @@
   gather_facts: True
   sudo: yes
   remote_user: developer
+  environment:
+    HOME: "/home/developer"
   roles:
     - role: consul-server
       consul_node_name: "consulserver1"
@@ -27,6 +43,8 @@
   gather_facts: True
   sudo: yes
   remote_user: developer
+  environment:
+    HOME: "/home/developer"
   roles:
     - role: consul-server
       consul_node_name: "consulserver2"
@@ -36,6 +54,8 @@
   gather_facts: True
   sudo: yes
   remote_user: developer
+  environment:
+    HOME: "/home/developer"
   roles:
     - role: consul-server
       consul_node_name: "consulserver3"
@@ -45,6 +65,8 @@
   gather_facts: True
   sudo: yes
   remote_user: developer
+  environment:
+    HOME: "/home/developer"
   roles:
     - docker
 
@@ -52,6 +74,8 @@
   gather_facts: True
   sudo: yes
   remote_user: developer
+  environment:
+    HOME: "/home/developer"
   roles:
     - { role: db, type: 'mysql', db_user: root, db_passwd: welcome2mysql, db_port: 3306, db_version: 5.7 }
     - { role: consul-client, service_type: mysql }
@@ -60,6 +84,8 @@
   gather_facts: True
   sudo: yes
   remote_user: developer
+  environment:
+    HOME: "/home/developer"
   roles:
     - { role: db, type: postgres, db_user: root, db_passwd: welcome2psql, db_port: 5432, db_version: 9.1 }
     - { role: consul-client, service_type: postgres }

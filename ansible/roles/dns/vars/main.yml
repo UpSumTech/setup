@@ -1,0 +1,6 @@
+---
+# These are the variables for the dns server
+
+image: sumanmukherjee03/dnsmasq
+tag: 2.68
+container_name: dnsmasqServer

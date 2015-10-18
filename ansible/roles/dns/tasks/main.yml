@@ -1,0 +1,27 @@
+---
+# These tasks pull the containers
+
+- name: Pull dns container
+  shell: "docker pull {{item}}"
+  with_items:
+    - "{{ image }}:{{ tag }}"
+  when: install_docker_py|success
+
+- name: Remove existing dns container
+  docker:
+    name: consulAgent
+    image: "{{ image }}:{{ tag }}"
+    state: absent
+  register: removed_dns_container
+
+- name: Start dns container
+  docker:
+    name: "{{ container_name }}"
+    image: "{{ image }}:{{ tag }}"
+    ports:
+      - "{{ ansible_ssh_host }}:53:53/udp"
+    volumes:
+      - "/etc/dnsmasq.hosts:/etc/dnsmasq.hosts"
+    detach: True
+    state: started
+  when: removed_dns_container|success

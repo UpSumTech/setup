@@ -1,5 +1,6 @@
 ---
 # These tasks install docker and its dependencies
+
 - name: Install apt packages
   apt: "name='{{ item }}' state=present update_cache=yes install_recommends=no"
   with_items:

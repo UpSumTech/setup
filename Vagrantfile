@@ -7,27 +7,32 @@ VAGRANTFILE_API_VERSION = "2"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "ubuntu/trusty64"
 
+  # config.vm.define "dns_server" do |n|
+    # n.vm.hostname = "dns-server"
+    # n.vm.network "private_network", ip: "172.20.20.10"
+    # n.vm.synced_folder ".", "/vagrant"
+
+    # n.vm.provision "shell", path: "bin/setup-consul-template.sh"
+
+    # n.vm.provision "docker" do |d|
+      # d.pull_images "sumanmukherjee03/dnsmasq:2.68"
+    # end
+
+    # n.vm.provision "shell",
+      # inline: "cd /vagrant && ./bin/run-docker-container.sh dnsmasq:2.68"
+
+    # n.vm.provision :shell,
+      # inline: "cp /vagrant/upstart_configurations/dnsmasq-consul-template.conf /etc/init/dnsmasq-consul-template.conf",
+      # run: "always"
+
+    # n.vm.provision :shell,
+      # inline: "sudo initctl emit containers-ready",
+      # run: "always"
+  # end
+
   config.vm.define "dns_server" do |n|
     n.vm.hostname = "dns-server"
     n.vm.network "private_network", ip: "172.20.20.10"
-    n.vm.synced_folder ".", "/vagrant"
-
-    n.vm.provision "shell", path: "bin/setup-consul-template.sh"
-
-    n.vm.provision "docker" do |d|
-      d.pull_images "sumanmukherjee03/dnsmasq:2.68"
-    end
-
-    n.vm.provision "shell",
-      inline: "cd /vagrant && ./bin/run-docker-container.sh dnsmasq:2.68"
-
-    n.vm.provision :shell,
-      inline: "cp /vagrant/upstart_configurations/dnsmasq-consul-template.conf /etc/init/dnsmasq-consul-template.conf",
-      run: "always"
-
-    n.vm.provision :shell,
-      inline: "sudo initctl emit containers-ready",
-      run: "always"
   end
 
   no_of_nodes = 3

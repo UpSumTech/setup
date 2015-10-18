@@ -13,6 +13,7 @@
     - name: Adds a user developer to the developer and sudo groups
       user: name=developer
             system=yes
+            createhome=true
             shell=/bin/bash
             group=developer
             groups=sudo

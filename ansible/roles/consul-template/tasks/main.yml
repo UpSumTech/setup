@@ -1,0 +1,73 @@
+---
+# These tasks setup consul-template
+
+- name: Install apt packages
+  apt: "name='{{ item }}' state=present update_cache=yes install_recommends=no"
+  with_items:
+    - bison
+
+- name: Create go dirs
+  shell: mkdir -p "$HOME/go/{pkg,bin,src}"
+  sudo: no
+
+- command: test -s "$HOME/.gvm/scripts/gvm"
+  ignore_errors: yes
+  register: is_gvm_installed
+
+- name: Install gvm on host
+  shell: curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer | bash
+  sudo: no
+  when: is_gvm_installed|failed
+  register: install_gvm
+
+- command: test -d "$HOME/.gvm/gos/go1.4"
+  ignore_errors: yes
+  register: is_go_installed
+
+- name: Install go1.4
+  shell: >
+    . "$HOME/.gvm/scripts/gvm" &&
+    "$HOME/.gvm/bin/gvm" install go1.4
+  args:
+    executable: /bin/bash
+  sudo: no
+  when: is_gvm_installed|success or install_gvm|success and is_go_installed|failed
+  register: install_go
+
+- command: test -d "$HOME/.gvm/pkgsets/go1.4/consul-template"
+  ignore_errors: yes
+  register: does_package_exist
+
+- name: Create consul-template package
+  shell: >
+    . "$HOME/.gvm/scripts/gvm" &&
+    gvm use go1.4 --default &&
+    gvm pkgset create consul-template
+  args:
+    executable: /bin/bash
+  sudo: no
+  when: does_package_exist|failed
+
+- command: test -d "$HOME/.gvm/pkgsets/go1.4/consul-template/src/github.com/hashicorp/consul-template"
+  ignore_errors: yes
+  register: consul_template_exists
+
+- git: repo=git://github.com/hashicorp/consul-template.git
+       dest=/home/developer/.gvm/pkgsets/go1.4/consul-template/src/github.com/hashicorp/consul-template
+       version=v0.11.0
+       accept_hostkey=yes
+  sudo: no
+  when: consul_template_exists|failed
+  register: downloaded_consul_template
+
+- name: Make consul-template
+  shell: >
+    . "$HOME/.gvm/scripts/gvm" &&
+    gvm pkgset use consul-template &&
+    cd "$HOME/.gvm/pkgsets/go1.4/consul-template/src/github.com/hashicorp/consul-template" &&
+    make updatedeps &&
+    make dev
+  sudo: no
+  args:
+    executable: /bin/bash
+  when: downloaded_consul_template|success
