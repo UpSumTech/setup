@@ -52,13 +52,18 @@
   ignore_errors: yes
   register: consul_template_exists
 
-- git: repo=git://github.com/hashicorp/consul-template.git
-       dest=/home/developer/.gvm/pkgsets/go1.4/consul-template/src/github.com/hashicorp/consul-template
-       version=v0.11.0
-       accept_hostkey=yes
+- git: >
+    repo=git://github.com/hashicorp/consul-template.git
+    dest=/home/developer/.gvm/pkgsets/go1.4/consul-template/src/github.com/hashicorp/consul-template
+    version=v0.11.0
+    accept_hostkey=yes
   sudo: no
   when: consul_template_exists|failed
   register: downloaded_consul_template
+
+- command: test -x "$HOME/.gvm/pkgsets/go1.4/consul-template/bin/consul-template"
+  ignore_errors: yes
+  register: consul_template_bin_exists
 
 - name: Make consul-template
   shell: >
@@ -70,4 +75,7 @@
   sudo: no
   args:
     executable: /bin/bash
-  when: downloaded_consul_template|success
+  when: downloaded_consul_template|success and consul_template_bin_exists|failed
+
+- name: Copy binary to /usr/local/bin
+  shell: cp "$HOME/.gvm/pkgsets/go1.4/consul-template/bin/consul-template" /usr/local/bin/consul-template

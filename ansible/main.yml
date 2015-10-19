@@ -16,8 +16,8 @@
     HOME: "/home/developer"
   roles:
     - docker
-    - dns
     - consul-template
+    - dns
 
 - hosts: dc1-consul-servers
   gather_facts: True

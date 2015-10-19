@@ -21,7 +21,31 @@
     ports:
       - "{{ ansible_ssh_host }}:53:53/udp"
     volumes:
-      - "/etc/dnsmasq.hosts:/etc/dnsmasq.hosts"
+      - "/etc/dnsmasqhosts:/etc/dnsmasqhosts"
     detach: True
     state: started
   when: removed_dns_container|success
+
+- file: path=/tmp/dnsmasqhosts state=directory owner=root group=root
+- file: path=/etc/dnsmasqhosts state=directory owner=root group=root
+
+- name: Copy dnsmasq hosts files
+  copy: >
+    src="{{ item }}"
+    dest=/tmp/dnsmasqhosts/
+  with_fileglob:
+    - ../files/*.ctmpl
+  register: dnsmasq_hosts_ready
+
+- name: Start consul-template daemon
+  shell: >
+    nohup consul-template -consul 172.20.20.11:8500 \
+      -wait 2s \
+      -retry 5s \
+      -pid-file /var/run/consul-template.pid \
+      -template "/tmp/dnsmasqhosts/mysql.ctmpl:/etc/dnsmasqhosts/mysql:docker restart dnsmasqServer" \
+      -template "/tmp/dnsmasqhosts/postgres.ctmpl:/etc/dnsmasqhosts/postgres:docker restart dnsmasqServer" \
+      -template "/tmp/dnsmasqhosts/rails.ctmpl:/etc/dnsmasqhosts/rails:docker restart dnsmasqServer" \
+      -template "/tmp/dnsmasqhosts/nginx.ctmpl:/etc/dnsmasqhosts/nginx:docker restart dnsmasqServer" \
+      >/dev/null 2>&1 &
+  when: dnsmasq_hosts_ready|success

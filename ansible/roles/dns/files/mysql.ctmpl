@@ -1,0 +1,2 @@
+{{range service "mysql-server" "passing"}}
+{{.Address}} {{.ID}}.dev{{end}}

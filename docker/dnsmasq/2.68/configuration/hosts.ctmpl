@@ -1,8 +1,0 @@
-{{range service "mysql-server" "passing"}}
-{{.Address}} {{.ID}}.dev{{end}}
-{{range service "postgres-server" "passing"}}
-{{.Address}} {{.ID}}.dev{{end}}
-{{range service "rails-server" "passing"}}
-{{.Address}} {{.ID}}.dev{{end}}
-{{range service "nginx-server" "passing"}}
-{{.Address}} {{.ID}}.dev{{end}}
