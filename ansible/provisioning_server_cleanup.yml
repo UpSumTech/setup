@@ -1,0 +1,9 @@
+---
+# This playbook cleans up the ansible provisioning server after bootstrapping nodes
+
+- hosts: localhost
+  sudo: yes
+  gather_facts: no
+  tasks:
+    - name: Remove public key from OS tmp dir
+      shell: rm /tmp/developer_id_rsa.pub

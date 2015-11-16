@@ -150,4 +150,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     n.vm.provision "shell",
       inline: "cd /vagrant && ./bin/run-docker-container.sh consul:node --link nodeServer:nodeServer -h node_server #{consul_env_vars}"
   end
+
+  config.vm.define "ide" do |n|
+    n.vm.hostname = "ide.dev"
+    n.vm.network "private_network", ip: "172.20.20.19"
+  end
 end

@@ -25,14 +25,14 @@ main() {
 
         echo "${hostList[@]}" \
           | xargs -n 1 -I hostName \
-            ansible-playbook -i "$ANSIBLE_DIR/hosts" -l hostName "$ANSIBLE_DIR/main.yml"
+            ansible-playbook -i "$ANSIBLE_DIR/hosts" -l hostName "$ANSIBLE_DIR/main.yml" --become-user=developer
 
         ;;
       *)
         if [[ ! -z $bootstrap ]]; then
           ansible-playbook -c paramiko -i "$ANSIBLE_DIR/hosts" "$ANSIBLE_DIR/bootstrap.yml" --ask-pass --sudo
         fi
-        ansible-playbook -i "$ANSIBLE_DIR/hosts" "$ANSIBLE_DIR/main.yml"
+        ansible-playbook -i "$ANSIBLE_DIR/hosts" "$ANSIBLE_DIR/main.yml" --become-user=developer
     esac
   done
 }

@@ -1,5 +1,6 @@
 ---
 # This playbook bootstraps a server
+
 - hosts: all
   sudo: yes
   remote_user: vagrant
@@ -22,14 +23,13 @@
     - name: Add an entry to the sudoers.d directory
       shell: echo "developer ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/developer
 
-    - name: Creates .ssh directory for developer
-      file: state=directory dest=/home/developer/.ssh/ owner=developer group=developer mode=0700
+    # - name: Creates .ssh directory for developer
+      # file: state=directory dest=/home/developer/.ssh/ owner=developer group=developer mode=0700
 
-    - name: Pushes user's rsa key to the developer users ssh authorized keys
-      copy: src=~/.ssh/id_rsa.pub dest=/home/developer/.ssh/authorized_keys owner=developer group=developer mode=0600
-      register: rsa
-      ignore_errors: yes
+    # - name: Pushes user's rsa key to the developer users ssh authorized keys
+      # copy: src=~/.ssh/id_rsa.pub dest=/home/developer/.ssh/authorized_keys owner=developer group=developer mode=0600
+      # register: rsa
+      # ignore_errors: yes
 
-    - name: Pushes user's dsa key to the developer users ssh authorized keys
-      copy: src=~/.ssh/id_dsa.pub dest=/home/developer/.ssh/authorized_keys owner=developer mode=0600
-      when: rsa|failed
+    # - name: Add RSA public key to the remote host
+      # authorized_key: user=developer key="{{ lookup('file', '/tmp/developer_id_rsa.pub') }}"

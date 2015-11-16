@@ -1,0 +1,100 @@
+---
+# These tasks install vim
+
+# - name: Install apt packages
+  # apt: "name='{{ item }}' state=present update_cache=yes install_recommends=no"
+  # with_items:
+    # - curl
+    # - git
+
+# - name: Remove existing vim
+  # apt: "name='{{ item }}' state=absent purge=yes"
+  # with_items:
+    # - vim
+    # - vim-runtime
+    # - gvim
+    # - vim-tiny
+    # - vim-common
+    # - vim-gui-common
+  # register: is_existing_vim_removed
+
+# - name: Get vim build dependency
+  # apt: "name=vim-gnome state=build-dep"
+  # when: is_existing_vim_removed|success
+  # register: is_vim_build_dep_installed
+
+# - name: Install vim dependencies
+  # apt: "name='{{ item }}' state=present update_cache=yes install_recommends=no"
+  # with_items:
+    # - liblua5.1-dev
+    # - luajit
+    # - libluajit-5.1-dev
+    # - python-dev
+    # - ruby-dev
+    # - libperl-dev
+    # - libncurses5-dev
+    # - libgnome2-dev
+    # - libgnomeui-dev
+    # - libgtk2.0-dev
+    # - libatk1.0-dev
+    # - libbonoboui2-dev
+    # - libcairo2-dev
+    # - libx11-dev
+    # - libxpm-dev
+    # - libxt-dev
+  # when: is_vim_build_dep_installed|success
+  # register: is_vim_dependencies_installed
+
+# - name: Prep lua includes for vim
+  # shell: >
+    # mkdir -p /usr/include/lua5.1/include &&
+    # mv /usr/include/lua5.1/*.h /usr/include/lua5.1/include >/dev/null 2>&1
+  # ignore_errors: yes
+  # when: is_vim_dependencies_installed|success
+
+# - name: Get vim
+  # shell: >
+    # cd "$HOME" &&
+    # rm -rf vim >/dev/null 2>&1 &&
+    # git clone https://github.com/vim/vim
+  # sudo: no
+  # when: is_vim_dependencies_installed|success
+  # register: has_latest_vim
+
+# - name: Configure vim
+  # shell: >
+    # cd vim &&
+    # make distclean &&
+    # ./configure --with-features=huge \
+      # --enable-multibyte \
+      # --enable-rubyinterp \
+      # --enable-largefile \
+      # --disable-netbeans \
+      # --enable-pythoninterp \
+      # --with-python-config-dir=/usr/lib/python2.7/config-x86_64-linux-gnu \
+      # --enable-perlinterp \
+      # --enable-luainterp \
+      # --with-luajit \
+      # --enable-gui=auto \
+      # --enable-fail-if-missing \
+      # --with-lua-prefix=/usr/include/lua5.1 \
+      # --prefix=/usr \
+      # --enable-clipboard \
+      # --enable-cscope &&
+    # make
+  # args:
+    # executable: /bin/bash
+  # sudo: no
+  # when: is_vim_dependencies_installed|success and has_latest_vim|success
+  # register: is_vim_configured
+
+# - name: Install vim
+  # shell: cd $HOME/vim && make install
+  # when: is_vim_configured|success
+  # register: is_vim_installed
+
+- name: Install vim config
+  shell: curl -s -S -L https://raw.githubusercontent.com/sumanmukherjee03/vim_setup/master/bootstrap.sh | bash
+  sudo: no
+  # when: is_vim_installed|success
+  # register: installed_vim_config
