@@ -35,23 +35,16 @@ DockerManager() {
       Class:exception "Please install docker"
   }
 
-  _getAllContainers() {
-    docker ps -a -q
-  }
-
   _stop() {
-    docker stop $( _getAllContainers )
+    docker ps -a -q | xargs -0 -I container docker stop container
   }
 
   _remove() {
-    docker rm $( _getAllContainers  )
+    docker ps -a -q | xargs -0 -I container docker rm container
   }
 
   DockerManager.clean() {
-    local instance="$1"
-    if [[ ! -z $( _getAllContainers ) ]]; then
-      _stop && _remove
-    fi
+    _stop && _remove
   }
 
   _getDockerHubLogin() {

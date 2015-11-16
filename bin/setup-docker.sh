@@ -6,13 +6,14 @@ fullSrcDir() {
 }
 source "$( fullSrcDir )/../libexec/utils.sh"
 
-prepareBoot2Docker() {
-  require Boot2DockerManager
-  Boot2DockerManager:new b2d1
-  $b2d1_validate
-  export DOCKER_HOST="$( $b2d1_dockerHost )"
-  export DOCKER_CERT_PATH="$( $b2d1_dockerCert )"
-  export DOCKER_TLS_VERIFY="$( $b2d1_dockerTls )"
+prepareDockerMachine() {
+  require DockerMachineManager
+  DockerMachineManager:new dmm1
+  $dmm1_validate
+  $dmm1_create
+  $dmm1_stop
+  $dmm1_start
+  eval "$(docker-machine env $dmm1_vmName)"
 }
 
 runDockerManager() {
@@ -51,13 +52,13 @@ runDockerManager() {
     DockerManager:new dm1 "$images"
     $dm1_validate
     $dm1_clean
+    echo "Cleaned the images..."
     $dm1_build
   fi
 }
 
 main() {
-  [[ "$( uname -s )" =~ Darwin ]] \
-    && prepareBoot2Docker
+  prepareDockerMachine
   runDockerManager "$@"
 }
 

@@ -4,16 +4,18 @@ fullSrcDir() {
 
 source "$( fullSrcDir )/../libexec/utils.sh"
 
-prepareBoot2Docker() {
-  require Boot2DockerManager
-  Boot2DockerManager:new b2d1
-  $b2d1_validate
-  export DOCKER_HOST="$( $b2d1_dockerHost )"
-  export DOCKER_CERT_PATH="$( $b2d1_dockerCert )"
-  export DOCKER_TLS_VERIFY="$( $b2d1_dockerTls )"
+prepareDockerMachine() {
+  require DockerMachineManager
+  DockerMachineManager:new dmm1
+  $dmm1_validate
+  $dmm1_create
+  $dmm1_stop
+  $dmm1_start
+  eval "$(docker-machine env $dmm1_vmName)"
 }
 
 main() {
+  prepareDockerMachine
   docker rmi $(docker images | grep "^<none>" | awk '{print $3}') &> /dev/null
 }
 

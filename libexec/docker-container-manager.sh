@@ -8,8 +8,6 @@ source "$( fullSrcDir )/utils.sh"
 
 DockerContainerManager() {
   require Class
-  require NetworkManager
-  require Boot2DockerManager
 
   _dockerContainerConstructor=$FUNCNAME
 
