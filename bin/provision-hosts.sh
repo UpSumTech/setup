@@ -1,7 +1,8 @@
 #!/bin/bash
 # Summary: Bootstrapping and provisioning hosts
 
-ANSIBLE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )/ansible"
+THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+ANSIBLE_DIR="$THIS_DIR/../ansible"
 
 main() {
   local option
@@ -19,20 +20,35 @@ main() {
 
         if [[ ! -z $bootstrap ]]; then
           for hostName in "${hostList[@]}"; do
-            ansible-playbook -c paramiko -i "$ANSIBLE_DIR/hosts" -l "$hostName" "$ANSIBLE_DIR/bootstrap.yml" --ask-pass --sudo
+            echo "Setting up the node with the developer user"
+            echo "You will need the vagrant password on the remote machine for this"
+            ansible-playbook -c paramiko \
+              -i "$ANSIBLE_DIR/hosts" \
+              -l "$hostName" \
+              "$ANSIBLE_DIR/bootstrap.yml" \
+              --ask-pass \
+              --sudo
           done
         fi
 
         echo "${hostList[@]}" \
           | xargs -n 1 -I hostName \
-            ansible-playbook -i "$ANSIBLE_DIR/hosts" -l hostName "$ANSIBLE_DIR/main.yml" --become-user=developer
-
+            ansible-playbook -i "$ANSIBLE_DIR/hosts" \
+              -l hostName \
+              "$ANSIBLE_DIR/main.yml"
         ;;
       *)
         if [[ ! -z $bootstrap ]]; then
-          ansible-playbook -c paramiko -i "$ANSIBLE_DIR/hosts" "$ANSIBLE_DIR/bootstrap.yml" --ask-pass --sudo
+          echo "Setting up the node with the developer user"
+          echo "You will need the vagrant password on the remote machine for this"
+          ansible-playbook -c paramiko \
+            -i "$ANSIBLE_DIR/hosts" \
+            "$ANSIBLE_DIR/bootstrap.yml" \
+            --ask-pass \
+            --sudo
         fi
-        ansible-playbook -i "$ANSIBLE_DIR/hosts" "$ANSIBLE_DIR/main.yml" --become-user=developer
+        ansible-playbook -i "$ANSIBLE_DIR/hosts" \
+          "$ANSIBLE_DIR/main.yml"
     esac
   done
 }
