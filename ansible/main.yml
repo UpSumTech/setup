@@ -90,11 +90,11 @@
     - { role: db, type: postgres, db_user: root, db_passwd: welcome2psql, db_port: 5432, db_version: 9.1 }
     - { role: consul-client, service_type: postgres }
 
-- hosts: dc1-ide
+- hosts: dc1-workstation
   gather_facts: True
   sudo: yes
   remote_user: developer
   environment:
     HOME: "/home/developer"
   roles:
-    - ide
+    - workstation

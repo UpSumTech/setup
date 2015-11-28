@@ -1,0 +1,4 @@
+---
+# These tasks sets up bash
+
+- copy: src=bashrc dest=/home/developer/.bashrc owner=developer group=developer mode=600

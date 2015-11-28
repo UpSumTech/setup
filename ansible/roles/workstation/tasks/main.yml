@@ -1,0 +1,13 @@
+---
+# These tasks set up a workstation
+
+- name: Install apt packages
+  apt: "name='{{ item }}' state=present update_cache=yes install_recommends=no"
+  with_items:
+    - curl
+    - git
+
+- include: term.yml
+- include: bash.yml
+- include: tmux.yml
+- include: ide.yml

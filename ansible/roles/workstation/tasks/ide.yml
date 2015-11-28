@@ -1,12 +1,6 @@
 ---
 # These tasks install vim
 
-- name: Install apt packages
-  apt: "name='{{ item }}' state=present update_cache=yes install_recommends=no"
-  with_items:
-    - curl
-    - git
-
 - name: Remove existing vim
   apt: "name='{{ item }}' state=absent purge=yes"
   with_items:
@@ -92,10 +86,6 @@
   shell: cd $HOME/vim && make install
   when: is_vim_configured|success
   register: is_vim_installed
-
-- name: Creates .ssh/github directory for developer
-  file: state=directory dest=/home/developer/.ssh/github owner=developer group=developer mode=0600
-  ignore_errors: yes
 
 - name: Install vim config
   shell: >
