@@ -1,0 +1,19 @@
+---
+# These tasks setup flocker
+
+- name: Install apt packages
+  apt: "name='{{ item }}' state=present update_cache=yes install_recommends=no"
+  with_items:
+    - git
+    - libffi-dev
+    - libssl-dev
+    - python-setuptools
+    - python-dev
+
+- name: Install flocker using pip
+  shell: >
+    rm -rf /opt/flocker &&
+    git clone https://github.com/clusterhq/flocker /opt/flocker &&
+    cd /opt/flocker &&
+    git checkout 1.8.0 &&
+    python setup.py install
