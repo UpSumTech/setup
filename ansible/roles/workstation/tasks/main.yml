@@ -6,7 +6,12 @@
   with_items:
     - curl
     - git
+    - htop
 
+- file: state=directory dest=/home/developer/bin owner=developer group=developer
+
+- include: git.yml
+- include: ag.yml
 - include: term.yml
 - include: bash.yml
 - include: tmux.yml

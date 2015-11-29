@@ -6,8 +6,7 @@
   with_items:
     - git
 
-- name: Creates code directory for developer
-  file: state=directory dest=/home/developer/code owner=developer group=developer
+- file: state=directory dest=/home/developer/code owner=developer group=developer
   ignore_errors: yes
 
 - name: Get tmux_setup

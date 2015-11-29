@@ -1,0 +1,16 @@
+log
+logs
+images
+tmp
+vendor
+node_modules
+*.sql
+*.tags*
+*.gemtags*
+*.csv
+*.tsv
+*.tmp*
+*.plist
+*.pdf
+*.log
+*.map

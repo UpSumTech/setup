@@ -70,9 +70,9 @@ RED="\[\e[1;31m\]"
 GREEN="\[\e[1;32m\]"
 if [ $EUID == 0 ] ; then
   if [ "$color_prompt" = yes ]; then
-    PS1="$RED\u@$RED\h:$NORMAL\w\a[$NORMAL\t]# $NORMAL"
+    PS1="$RED${debian_chroot:+($debian_chroot)}$RED\u@$RED\h:$NORMAL\w\a[$NORMAL\t]# $NORMAL"
   else
-    PS1="\u@\h:\w\a[\t]# "
+    PS1="${debian_chroot:+($debian_chroot)}\u@\h:\w\a[\t]# "
   fi
   unset HISTFILE HISTSIZE HISTFILESIZE HISTIGNORE
   export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"

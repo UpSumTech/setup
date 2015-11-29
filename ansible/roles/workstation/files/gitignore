@@ -1,0 +1,9 @@
+*.sw[nop]
+.bundle
+.env
+*.log
+tags
+tmp/**/*
+!tmp/cache/.keep
+*.bak
+.vim
