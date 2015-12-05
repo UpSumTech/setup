@@ -8,6 +8,17 @@
   roles:
     - common
 
+- hosts: dc1-workstation
+  gather_facts: True
+  sudo: yes
+  remote_user: developer
+  environment:
+    HOME: "/home/developer"
+  roles:
+    - workstation
+    - flocker
+    - docker
+
 - hosts: dc1-dns
   gather_facts: True
   sudo: yes
@@ -15,6 +26,7 @@
   environment:
     HOME: "/home/developer"
   roles:
+    - flocker
     - docker
     - consul-template
     - dns
@@ -26,6 +38,7 @@
   environment:
     HOME: "/home/developer"
   roles:
+    - flocker
     - docker
 
 - hosts: "consulserver1.dev"
@@ -68,6 +81,7 @@
   environment:
     HOME: "/home/developer"
   roles:
+    - flocker
     - docker
 
 - hosts: dc1-mysql
@@ -77,8 +91,15 @@
   environment:
     HOME: "/home/developer"
   roles:
-    - { role: db, type: 'mysql', db_user: root, db_passwd: welcome2mysql, db_port: 3306, db_version: 5.7 }
-    - { role: consul-client, service_type: mysql }
+    - role: db
+      type: 'mysql'
+      db_user: root
+      db_passwd: welcome2mysql
+      db_port: 3306
+      db_version: 5.7
+
+    - role: consul-client
+      service_type: mysql
 
 - hosts: dc1-postgres
   gather_facts: True
@@ -87,14 +108,12 @@
   environment:
     HOME: "/home/developer"
   roles:
-    - { role: db, type: postgres, db_user: root, db_passwd: welcome2psql, db_port: 5432, db_version: 9.1 }
-    - { role: consul-client, service_type: postgres }
+    - role: db
+      type: postgres
+      db_user: root
+      db_passwd: welcome2psql
+      db_port: 5432
+      db_version: 9.1
 
-- hosts: dc1-workstation
-  gather_facts: True
-  sudo: yes
-  remote_user: developer
-  environment:
-    HOME: "/home/developer"
-  roles:
-    - workstation
+    - role: consul-client
+      service_type: postgres
