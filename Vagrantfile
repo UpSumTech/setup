@@ -7,14 +7,20 @@ VAGRANTFILE_API_VERSION = "2"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "ubuntu/trusty64"
 
-  config.vm.define "dns_server" do |n|
+  config.vm.define "workstation" do |n|
     n.vm.provider "virtualbox"
-    n.vm.hostname = "dns-server"
+    n.vm.hostname = "workstation.dev"
     n.vm.network "private_network", ip: "172.20.20.10"
   end
 
+  config.vm.define "dns_server" do |n|
+    n.vm.provider "virtualbox"
+    n.vm.hostname = "dns-server"
+    n.vm.network "private_network", ip: "172.20.20.11"
+  end
+
   no_of_nodes = 3
-  first_consul_server_ip = [172,20,20,11]
+  first_consul_server_ip = [172,20,20,12]
   no_of_nodes.times do |i|
     config.vm.define "node#{i + 1}" do |n|
       n.vm.provider "virtualbox"
@@ -26,13 +32,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define "mysql" do |n|
     n.vm.provider "virtualbox"
     n.vm.hostname = "mysqldb1.dev"
-    n.vm.network "private_network", ip: "172.20.20.14"
+    n.vm.network "private_network", ip: "172.20.20.15"
   end
 
   config.vm.define "postgres" do |n|
     n.vm.provider "virtualbox"
     n.vm.hostname = "postgresdb1.dev"
-    n.vm.network "private_network", ip: "172.20.20.15"
+    n.vm.network "private_network", ip: "172.20.20.16"
   end
 
   # config.vm.define "rails" do |n|
@@ -155,9 +161,4 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       # inline: "cd /vagrant && ./bin/run-docker-container.sh consul:node --link nodeServer:nodeServer -h node_server #{consul_env_vars}"
   # end
 
-  config.vm.define "workstation" do |n|
-    n.vm.provider "virtualbox"
-    n.vm.hostname = "workstation.dev"
-    n.vm.network "private_network", ip: "172.20.20.19"
-  end
 end
