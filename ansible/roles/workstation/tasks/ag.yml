@@ -1,6 +1,0 @@
----
-# These tasks sets up ag
-
-- apt: name=silversearcher-ag state=present update_cache=yes install_recommends=no
-
-- copy: src=agignore dest=/home/developer/.agignore owner=developer group=developer mode=600

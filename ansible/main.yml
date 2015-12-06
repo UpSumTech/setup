@@ -8,17 +8,6 @@
   roles:
     - common
 
-- hosts: dc1-workstation
-  gather_facts: True
-  sudo: yes
-  remote_user: developer
-  environment:
-    HOME: "/home/developer"
-  roles:
-    - workstation
-    - flocker
-    - docker
-
 - hosts: dc1-dns
   gather_facts: True
   sudo: yes

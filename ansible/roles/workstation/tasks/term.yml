@@ -1,8 +1,0 @@
----
-# These tasks set up color schemes and stuff for the termninal
-
-- name: Install dircolors
-  shell: >
-    rm -rf /home/developer/.dircolors &&
-    git clone git@github.com:seebi/dircolors-solarized.git /home/developer/.dircolors
-  sudo: no

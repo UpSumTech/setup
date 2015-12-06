@@ -7,12 +7,6 @@ VAGRANTFILE_API_VERSION = "2"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "ubuntu/trusty64"
 
-  config.vm.define "workstation" do |n|
-    n.vm.provider "virtualbox"
-    n.vm.hostname = "workstation.dev"
-    n.vm.network "private_network", ip: "172.20.20.10"
-  end
-
   config.vm.define "dns_server" do |n|
     n.vm.provider "virtualbox"
     n.vm.hostname = "dns-server"

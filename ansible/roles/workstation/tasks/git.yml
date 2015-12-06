@@ -1,8 +1,0 @@
----
-# These tasks sets up ag
-
-- apt: name=git state=present update_cache=yes install_recommends=no
-
-- copy: src=gitignore dest=/home/developer/.gitignore owner=developer group=developer mode=600
-- copy: src=gitmessage dest=/home/developer/.gitmessage owner=developer group=developer mode=600
-- copy: src=gitconfig dest=/home/developer/.gitconfig owner=developer group=developer mode=600
