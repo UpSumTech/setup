@@ -1,6 +1,11 @@
 ---
 # These tasks pull the containers
 
+- name: Install apt packages
+  apt: "name='{{ item }}' state=present update_cache=yes install_recommends=no"
+  with_items:
+    - jq
+
 - name: Pull dns container
   shell: "docker pull {{item}}"
   with_items:
@@ -35,12 +40,15 @@
     - ../files/services.ctmpl
   register: dnsmasq_hosts_ready
 
+- name: Copy file watcher for restarting dns container
+  copy: src="../files/restart-dns-container" dest=/usr/local/bin/restart-dns-container mode=0700
+
 - name: Start consul-template daemon
   shell: >
     nohup consul-template -consul "{{ first_consul_server_ip }}:8500" \
       -wait 2s \
       -retry 5s \
       -pid-file /var/run/consul-template.pid \
-      -template '/tmp/dnsmasqhosts/services.ctmpl:/etc/dnsmasqhosts/services:docker restart dnsmasqServer' \
+      -template '/tmp/dnsmasqhosts/services.ctmpl:/tmp/services_from_consul' \
       >/dev/null 2>&1 &
   when: dnsmasq_hosts_ready|success

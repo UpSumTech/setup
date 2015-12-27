@@ -1,0 +1,117 @@
+#!/bin/bash
+
+export PARENT_PID="$$"
+
+SERVICES_FILE_FROM_CONSUL=/tmp/services_from_consul
+SERVICES_FILE_NORMALIZED_OLD=/tmp/services_normalized_old
+SERVICES_FILE_NORMALIZED_NEW=/tmp/services_normalized_new
+SERVICES_FILE=/etc/dnsmasqhosts/services
+CONSUL_SERVER_IP="$1"
+
+die() {
+  echo >&2 "Error: $@"
+  kill -s TERM $PARENT_PID
+  exit 1
+}
+
+validate() {
+  which jq >/dev/null 2>&1
+  [[ $? -eq 0 ]] || die "jq is not installed"
+
+  which md5sum >/dev/null 2>&1
+  [[ $? -eq 0 ]] || die "md5sum is not installed"
+
+  [[ ! -z "$CONSUL_SERVER_IP" ]] || die "Consul server ip not provided"
+}
+
+prep() {
+  [[ -f "$SERVICES_FILE_FROM_CONSUL" ]] || > "$SERVICES_FILE_FROM_CONSUL"
+  > "$SERVICES_FILE_NORMALIZED_OLD"
+  > "$SERVICES_FILE_NORMALIZED_NEW"
+  > "$SERVICES_FILE"
+}
+
+init() {
+  [[ ! -z ${AVAILABLE_SERVICES+z} ]] && return true;
+
+  local servicesUrl="$CONSUL_SERVER_IP:8500/v1/catalog/services"
+  local serviceUrlPart="$CONSUL_SERVER_IP:8500/v1/catalog/service"
+  local queryData="$(curl "$servicesUrl")"
+  local services=( $(echo "$queryData" | jq 'keys' | sed -e "s#,##g;s#\[##g;s#\]##g;s#\"##g;s#\'##g") )
+  services=( $(printf '%s\n' "${services[@]}"| sort| uniq | xargs) )
+
+  local service
+  local serviceQueryData
+  local name
+  local address
+  AVAILABLE_SERVICES=()
+  for service in "${services[@]}"; do
+    serviceQueryData="$(curl "$serviceUrlPart/$service")"
+    name="$(echo "$serviceQueryData" | jq '.[0]["ServiceID"]' | sed -e "s#\"##g")"
+    address="$(echo "$serviceQueryData" | jq '.[0]["ServiceAddress"]' | sed -e "s#\"##g")"
+    if [[ -z "$address" ]]; then
+      address="$(echo "$serviceQueryData" | jq '.[0]["Address"]' | sed -e "s#\"##g")"
+    fi
+    AVAILABLE_SERVICES+=( "$name.dev" )
+    echo "$address $name.dev" >> "$SERVICES_FILE_NORMALIZED_NEW"
+  done
+
+  AVAILABLE_SERVICES=( $(printf '%s\n' "${AVAILABLE_SERVICES[@]}"| sort| uniq | xargs) )
+}
+
+regenerateNewFile() {
+  local service
+
+  > "$SERVICES_FILE_NORMALIZED_NEW"
+  for service in "${AVAILABLE_SERVICES[@]}"; do
+    line="$(awk -v awkService="$service" 'if ( $1 ~ awkService ) {print $1 " " $2; exit}' "$SERVICES_FILE_FROM_CONSUL")"
+    echo "$line" >> "$SERVICES_FILE_NORMALIZED_NEW"
+  done
+}
+
+update() {
+  local oldChksum
+  local newChksum
+
+  oldChksum="$(md5sum "$SERVICES_FILE_NORMALIZED_OLD" | awk '{print $1}')"
+  newChksum="$(md5sum "$SERVICES_FILE_NORMALIZED_NEW" | awk '{print $1}')"
+  if [[ "$newChksum" != "$oldChksum" ]]; then
+    cp "$SERVICES_FILE_NORMALIZED_NEW" "$SERVICES_FILE_NORMALIZED_OLD"
+    cp "$SERVICES_FILE_NORMALIZED_NEW" "$SERVICES_FILE"
+    docker restart dnsmasqServer
+  fi
+}
+
+main() {
+  validate
+  prep
+  init
+  update
+
+  local t1=$(stat -c %Z "$SERVICES_FILE_FROM_CONSUL" | bc)
+  local t2
+  local services
+  local line
+
+  while : ; do
+    t2=$(stat -c %Z "$SERVICES_FILE_FROM_CONSUL" | bc)
+    services=()
+
+    if [[ $t2 -ge $t1 ]]; then
+      while read -r line; do
+        if [[ ! -z "$line" ]]; then
+          services+=( "$(echo "$line" | awk '{print $2}')" )
+        fi
+      done < "$SERVICES_FILE_FROM_CONSUL"
+      services=( $(printf '%s\n' "${services[@]}"| sort| uniq | xargs) )
+
+      AVAILABLE_SERVICES=( $(echo "${AVAILABLE_SERVICES[@]}" "${services[@]}" | tr ' ' '\n' | sort | uniq | xargs) )
+      update
+
+      t1=$t2
+    fi
+    sleep 10
+  done
+}
+
+[[ "$BASH_SOURCE" == "$0" ]] && main
