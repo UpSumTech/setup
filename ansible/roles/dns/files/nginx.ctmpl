@@ -1,2 +1,0 @@
-{{range service "nginx-server" "passing"}}
-{{.Address}} {{.ID}}.dev{{end}}

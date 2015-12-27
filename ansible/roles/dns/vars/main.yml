@@ -4,3 +4,5 @@
 image: sumanmukherjee03/dnsmasq
 tag: 2.68
 container_name: dnsmasqServer
+consul_container_name: consulAgent
+first_consul_server_ip: "{{ hostvars['consulserver1.dev']['ansible_ssh_host'] }}"

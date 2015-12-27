@@ -1,0 +1,3 @@
+{{range services}}{{range service .Name}}
+{{.Address}} {{.ID}}.dev{{end}}
+{{end}}

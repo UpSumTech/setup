@@ -1,2 +1,0 @@
-{{range service "rails-server" "passing"}}
-{{.Address}} {{.ID}}.dev{{end}}
