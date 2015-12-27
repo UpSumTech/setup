@@ -10,6 +10,10 @@
     - python-setuptools
     - python-dev
 
+- command: test -s /usr/local/bin/flocker
+  ignore_errors: yes
+  register: flocker_installed
+
 - name: Install flocker using pip
   shell: >
     rm -rf /opt/flocker &&
@@ -17,3 +21,4 @@
     cd /opt/flocker &&
     git checkout 1.8.0 &&
     python setup.py install
+  when: flocker_installed|failed
