@@ -42,6 +42,7 @@
 
 - name: Copy file watcher for restarting dns container
   copy: src="../files/restart-dns-container" dest=/usr/local/bin/restart-dns-container mode=0700
+  register: copied_restart_dns_container_daemon
 
 - name: Start consul-template daemon
   shell: >
@@ -52,3 +53,12 @@
       -template '/tmp/dnsmasqhosts/services.ctmpl:/tmp/services_from_consul' \
       >/dev/null 2>&1 &
   when: dnsmasq_hosts_ready|success
+  register: started_consul_template
+
+- name: Start restart-dns-container daemon
+  shell: >
+    nohup restart-dns-container "{{ first_consul_server_ip }}" \
+      >/dev/null 2>&1 &
+  args:
+    executable: /bin/bash
+  when: started_consul_template|success and copied_restart_dns_container_daemon|success
