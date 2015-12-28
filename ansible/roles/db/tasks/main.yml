@@ -1,10 +1,18 @@
 ---
 # These tasks pull the containers
-- name: Pull db container
+- name: Pull containers
   shell: "docker pull {{item}}"
   with_items:
     - "{{ db_image }}:{{ db_version }}"
+    - "svendowideit/ambassador"
   when: install_docker_py|success
+
+- name: Remove existing db ambassador container
+  docker:
+    name: db_ambassador
+    image: "svendowideit/ambassador"
+    state: absent
+  register: removed_db_ambassador_container
 
 - name: Remove existing db container
   docker:
@@ -17,14 +25,26 @@
   docker:
     name: "{{ db_container_name }}"
     image: "{{ db_image }}:{{ db_version }}"
-    ports:
-      - "{{ ansible_ssh_host }}:{{ db_port }}:{{ db_port }}"
-    dns:
-      - "{{ db_dns }}"
+    hostname: "{{ db_hostname }}"
     env:
       USER: "{{ db_user }}"
       PASSWD: "{{ db_passwd }}"
-    hostname: "{{ db_hostname }}"
     detach: True
     state: started
-  when: removed_db_container|success
+  when: removed_db_ambassador_container|success and removed_db_container|success
+  register: started_db_container
+
+- name: Start db ambassador container
+  docker:
+    name: db_ambassador
+    image: "svendowideit/ambassador"
+    hostname: "{{ db_hostname }}_ambassador"
+    links:
+      - "{{ db_container_name }}:{{ db_container_name }}"
+    ports:
+      - "{{ db_port }}:{{ db_port }}"
+    expose:
+      - "{{ db_port }}"
+    detach: True
+    state: started
+  when: started_db_container|success

@@ -3,5 +3,4 @@
 
 db_container_name: '{{ type }}Server'
 db_image: 'sumanmukherjee03/{{ type }}'
-db_dns: "{{ hostvars['dnsmasq1.dev']['ansible_ssh_host'] }}"
 db_hostname: '{{ type }}'
