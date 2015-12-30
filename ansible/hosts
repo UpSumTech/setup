@@ -12,6 +12,9 @@ mysqldb1.dev ansible_ssh_host=172.20.20.15
 [dc1-postgres]
 postgresdb1.dev ansible_ssh_host=172.20.20.16
 
+[dc1-nginx]
+nginx1.dev ansible_ssh_host=172.20.20.17
+
 [dc1-db:children]
 dc1-mysql
 dc1-postgres
@@ -20,6 +23,7 @@ dc1-postgres
 dc1-dns
 dc1-consul-servers
 dc1-db
+dc1-nginx
 
 [datacenter:children]
 dc1

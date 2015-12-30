@@ -1,0 +1,2 @@
+{{range service "rails-server" "passing"}}
+server {{.Address}}:{{.Port}}{{end}}

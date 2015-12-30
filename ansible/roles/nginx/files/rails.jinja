@@ -1,0 +1,21 @@
+http {
+  upstream rails_cluster {
+    ip_hash;
+    {{ upstream_server }};
+  }
+
+  server {
+    listen 80;
+    client_max_body_size 8M;
+    access_log /var/log/nginx/access.log;
+    passenger_enabled on;
+
+    location / {
+      proxy_pass http://rails_cluster;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header Host $http_host;
+      proxy_set_header X-Forwarded-Host $server_name;
+    }
+  }
+}

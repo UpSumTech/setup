@@ -106,3 +106,21 @@
 
     - role: consul-client
       service_type: postgres
+
+- hosts: dc1-nginx
+  gather_facts: True
+  sudo: yes
+  remote_user: developer
+  environment:
+    HOME: "/home/developer"
+  roles:
+    - role: flocker
+
+    - role: docker
+
+    - role: nginx
+      image_tag: 'passenger-nginx'
+      first_consul_server_ip: "{{ hostvars['consulserver1.dev']['ansible_ssh_host'] }}"
+
+    - role: consul-client
+      service_type: nginx

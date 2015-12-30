@@ -1,0 +1,8 @@
+---
+# Variables for nginx server
+
+nginx_container_name: 'nginxServer'
+nginx_image: 'sumanmukherjee03/nginx'
+nginx_image_tag: '{{ image_tag }}'
+nginx_hostname: 'nginx'
+nginx_port: 80

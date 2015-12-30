@@ -35,6 +35,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     n.vm.network "private_network", ip: "172.20.20.16"
   end
 
+  config.vm.define "nginx" do |n|
+    n.vm.provider "virtualbox"
+    n.vm.hostname = "nginx1.dev"
+    n.vm.network "private_network", ip: "172.20.20.17"
+    # inline: "sudo initctl emit containers-ready",
+  end
+
   # config.vm.define "rails" do |n|
     # external_ip = "172.20.20.16"
     # n.vm.provider "virtualbox" do |vb|
@@ -78,44 +85,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     # n.vm.provision "shell",
       # inline: "cd /vagrant && ./bin/run-docker-container.sh consul:rails --link railsServer:railsServer -h rails_server #{consul_env_vars}"
-  # end
-
-  # config.vm.define "nginx" do |n|
-    # external_ip = "172.20.20.17"
-
-    # n.vm.hostname = "nginx-server"
-    # n.vm.network "private_network", ip: external_ip
-    # n.vm.synced_folder ".", "/vagrant"
-
-    # n.vm.provision "shell", path: "bin/setup-consul-template.sh"
-
-    # n.vm.provision "docker" do |d|
-      # d.pull_images "sumanmukherjee03/nginx:passenger-nginx"
-      # d.pull_images "sumanmukherjee03/consul:nginx"
-    # end
-
-    # n.vm.provision "shell",
-      # inline: "cd /vagrant && ./bin/run-docker-container.sh nginx:passenger-nginx -h nginx --dns 172.20.20.10"
-
-    # consul_env_vars = [
-      # "NODE_NAME=nginx_server",
-      # "EXTERNAL_IP=#{external_ip}",
-      # "EXTERNAL_PORT=80",
-      # "SERVICE_ID=nginx1",
-      # "SERVER=false",
-      # "JOIN_IP=#{first_consul_server_ip.join('.')}"
-    # ].map {|var| "-e #{var}"}.join(" ")
-
-    # n.vm.provision "shell",
-      # inline: "cd /vagrant && ./bin/run-docker-container.sh consul:nginx --link nginxServer:nginxServer -h nginx_server #{consul_env_vars}"
-
-    # n.vm.provision :shell,
-      # inline: "cp /vagrant/upstart_configurations/nginx-consul-template.conf /etc/init/nginx-consul-template.conf",
-      # run: "always"
-
-    # n.vm.provision :shell,
-      # inline: "sudo initctl emit containers-ready",
-      # run: "always"
   # end
 
   # config.vm.define "node" do |n|

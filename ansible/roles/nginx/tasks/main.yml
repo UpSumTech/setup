@@ -1,0 +1,97 @@
+---
+# These tasks sets up the virtual machine for nginx
+
+- name: Install apt packages
+  apt: "name='{{ item }}' state=present update_cache=yes install_recommends=no"
+  with_items:
+    - jq
+
+- pip: name=Jinja2
+- pip: name=docopt
+
+- name: Pull containers
+  shell: "docker pull {{item}}"
+  with_items:
+    - "{{ nginx_image }}:{{ nginx_image_tag }}"
+    - "sumanmukherjee03/ambassador:1.0"
+  when: install_docker_py|success
+
+- name: Remove existing nginx ambassador container
+  docker:
+    name: nginx_ambassador
+    image: "sumanmukherjee03/ambassador:1.0"
+    state: absent
+  register: removed_nginx_ambassador_container
+
+- name: Remove existing nginx container
+  docker:
+    name: "{{ nginx_container_name }}"
+    image: "{{ nginx_image }}:{{ nginx_image_tag }}"
+    state: absent
+  register: removed_nginx_container
+
+- name: Start nginx container
+  docker:
+    name: "{{ nginx_container_name }}"
+    image: "{{ nginx_image }}:{{ nginx_image_tag }}"
+    hostname: "{{ nginx_hostname }}"
+    volumes:
+      - "/etc/nginx/vhosts:/etc/nginx/vhosts"
+    detach: True
+    state: started
+  when: removed_nginx_ambassador_container|success and removed_nginx_container|success
+  register: started_nginx_container
+
+- file: path=/tmp/nginx/vhosts state=directory owner=root group=root
+
+- name: Copy nginx hosts files
+  copy: >
+    src="{{ item }}"
+    dest=/tmp/nginx/vhosts
+  with_fileglob:
+    - ../files/rails.ctmpl
+    - ../files/rails.jinja
+  register: nginx_vhosts_ready
+
+- name: Copy python script to render vhost file
+  copy: src="../files/vhost_renderer.py" dest=/usr/local/bin/vhost_renderer.py mode=0700
+  register: copied_vhost_renderer
+
+- name: Copy file watcher for reloading nginx
+  copy: src="../files/restart-nginx-container" dest=/usr/local/bin/restart-nginx-container mode=0700
+  register: copied_restart_nginx_container_daemon
+  when: copied_vhost_renderer|success
+
+- name: Start consul-template daemon
+  shell: >
+    nohup consul-template -consul "{{ first_consul_server_ip }}:8500" \
+      -wait 2s \
+      -retry 5s \
+      -pid-file /var/run/consul-template.pid \
+      -template '/tmp/nginx/vhosts/rails.ctmpl:/tmp/nginx/vhosts/rails' \
+      >/dev/null 2>&1 &
+  when: nginx_vhosts_ready|success
+  register: started_consul_template
+
+- name: Start restart-nginx-container daemon
+  shell: >
+    nohup restart-nginx-container "{{ first_consul_server_ip }}" "{{ nginx_container_name }}" \
+      >/dev/null 2>&1 &
+  args:
+    executable: /bin/bash
+  when: started_consul_template|success and copied_restart_nginx_container_daemon|success
+
+- name: Start nginx ambassador container
+  docker:
+    name: nginx_ambassador
+    image: "sumanmukherjee03/ambassador:1.0"
+    hostname: "{{ nginx_hostname }}_ambassador"
+    links:
+      - "{{ nginx_container_name }}:{{ nginx_container_name }}"
+    ports:
+      - "{{ nginx_port }}:{{ nginx_port }}"
+    expose:
+      - "{{ nginx_port }}"
+    detach: True
+    state: started
+  when: started_nginx_container|success

@@ -1,16 +1,17 @@
 ---
-# These tasks pull the containers
+# These tasks sets up the vagrant machine for databases
+
 - name: Pull containers
   shell: "docker pull {{item}}"
   with_items:
     - "{{ db_image }}:{{ db_version }}"
-    - "svendowideit/ambassador"
+    - "sumanmukherjee03/ambassador:1.0"
   when: install_docker_py|success
 
 - name: Remove existing db ambassador container
   docker:
     name: db_ambassador
-    image: "svendowideit/ambassador"
+    image: "sumanmukherjee03/ambassador:1.0"
     state: absent
   register: removed_db_ambassador_container
 
@@ -37,7 +38,7 @@
 - name: Start db ambassador container
   docker:
     name: db_ambassador
-    image: "svendowideit/ambassador"
+    image: "sumanmukherjee03/ambassador:1.0"
     hostname: "{{ db_hostname }}_ambassador"
     links:
       - "{{ db_container_name }}:{{ db_container_name }}"
