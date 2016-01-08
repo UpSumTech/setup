@@ -1,0 +1,17 @@
+---
+# Variables for app servers
+
+app_type: '{{ type }}'
+app_onbuild_image: 'sumanmukherjee03/{{ app_type }}'
+app_onbuild_image_tag: '{{ image_tag }}'
+app_container_name: '{{ app_type }}Server'
+app_image: '{{ app_type }}_image'
+app_hostname: '{{ hostname }}'
+app_db_name: '{{ db_name }}'
+app_db_adapter: '{{ db_adapter }}'
+app_db_user: '{{ db_user }}'
+app_db_passwd: '{{ db_passwd }}'
+app_db_host: '{{ db_host }}'
+app_db_port: '{{ db_port }}'
+app_env: '{{ environment }}'
+app_port: '{{ port }}'

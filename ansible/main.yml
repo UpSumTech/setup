@@ -124,3 +124,34 @@
 
     - role: consul-client
       service_type: nginx
+
+- hosts: dc1-app
+  gather_facts: True
+  sudo: yes
+  remote_user: developer
+  environment:
+    HOME: "/home/developer"
+  roles:
+    - flocker
+    - docker
+
+- hosts: dc1-rails
+  gather_facts: True
+  sudo: yes
+  remote_user: developer
+  roles:
+    - role: app
+      type: rails
+      image_tag: 'onbuild-4.2.5'
+      hostname: 'rails'
+      db_name: 'railsapp'
+      db_adapter: 'mysql2'
+      db_user: 'root'
+      db_passwd: 'welcome2mysql'
+      db_host: "{{ hostvars['mysqldb1.dev']['ansible_ssh_host'] }}"
+      db_port: 3306
+      environment: 'development'
+      port: 3000
+
+    - role: consul-client
+      service_type: rails

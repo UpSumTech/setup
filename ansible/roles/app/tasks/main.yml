@@ -1,0 +1,70 @@
+---
+# These tasks sets up the virtual machine for app server
+
+- name: Pull containers
+  shell: "docker pull {{item}}"
+  with_items:
+    - "{{ app_onbuild_image }}:{{ app_onbuild_image_tag }}"
+    - "sumanmukherjee03/ambassador:1.0"
+  when: install_docker_py|success
+
+- name: Remove existing app db ambassador container
+  docker:
+    name: app_db_ambassador
+    image: "sumanmukherjee03/ambassador:1.0"
+    state: absent
+  register: removed_app_db_ambassador_container
+
+- name: Remove existing app container
+  docker:
+    name: "{{ app_container_name }}"
+    image: "{{ app_image }}"
+    state: absent
+  register: removed_app_container
+
+- command: rm -rf /opt/app/current
+  ignore_errors: yes
+- command: git clone https://github.com/sumanmukherjee03/shoppe-example /opt/app/current
+
+- name: Copy Dockerfile for app
+  copy: src="../files/Dockerfile" dest=/opt/app/current/Dockerfile
+
+- name: Build app container
+  command: docker build -t {{ app_image }} /opt/app/current
+  register: built_app_container
+
+- name: Start db ambassador container
+  docker:
+    name: app_db_ambassador
+    image: "sumanmukherjee03/ambassador:1.0"
+    hostname: "{{ app_hostname }}_db_ambassador"
+    env:
+      DB_PORT_3306_TCP: "tcp://{{ app_db_host }}:{{ app_db_port }}"
+    expose:
+      - "{{ app_db_port }}"
+    detach: True
+    state: started
+  register: started_app_db_ambassador_container
+  when: removed_app_db_ambassador_container|success
+
+- name: Start app container
+  docker:
+    name: "{{ app_container_name }}"
+    image: "{{ app_image }}"
+    hostname: "{{ app_hostname }}"
+    env:
+      DB_ADAPTER: "{{ app_db_adapter }}"
+      DB_NAME: "{{ app_db_name }}"
+      DB_USER: "{{ app_db_user }}"
+      DB_PASSWD: "{{ app_db_passwd }}"
+      DB_HOST: "localhost"
+      DB_PORT: "{{ app_db_port }}"
+      APP_ENV: "{{ app_env }}"
+    volumes:
+      - "/mnt:/var/lib/consul"
+    links:
+      - "app_db_ambassador:db"
+    detach: True
+    state: started
+  when: removed_app_container|success and built_app_container|success and started_app_db_ambassador_container|success
+  register: started_app_container
