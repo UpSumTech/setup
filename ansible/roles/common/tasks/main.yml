@@ -6,7 +6,7 @@
   register: ns
 
 - name: Pushes deploy users github private key to the remote developer users ssh keys
-  copy: src="/Users/suman/.ssh/github/{{ item }}" dest="/home/developer/.ssh/{{ item }}" group=developer owner=developer mode=0600
+  copy: src="~/.ssh/github/{{ item }}" dest="/home/developer/.ssh/{{ item }}" group=developer owner=developer mode=0600
   with_items:
     - id_rsa
     - id_rsa.pub
